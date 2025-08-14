@@ -23,6 +23,9 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
@@ -81,6 +84,18 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.1.6
         version: 11.1.6(@nestjs/common@11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.6)
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/shared:
+    devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config

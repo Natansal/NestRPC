@@ -1,7 +1,10 @@
 {
-  "name": "client",
+  "name": "@repo/shared",
   "version": "0.0.0",
   "private": true,
+  "exports": {
+    ".": "./index.ts"
+  },
   "scripts": {
     "dev": "echo 'Add dev script here'",
     "build": "echo 'Add build script here'",
@@ -10,7 +13,6 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@repo/shared": "workspace:*"
+    "@repo/typescript-config": "workspace:*"
   }
 }

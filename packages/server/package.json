@@ -11,6 +11,7 @@
    "devDependencies": {
       "@repo/eslint-config": "workspace:*",
       "@repo/typescript-config": "workspace:*",
+      "@repo/shared": "workspace:*",
       "@nestjs/common": "^11.1.6",
       "@nestjs/core": "^11.1.6",
       "@nestjs/platform-express": "^11.1.6"
