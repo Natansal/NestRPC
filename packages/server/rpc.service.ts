@@ -1,15 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { RPC_MODULE_OPTIONS } from "./constants";
-import type { NestRPCModuleOptions } from "./rpc.module";
 import { executeRpcMethod } from "./runtime/executor";
 import type { NestRpcExecutionContext } from "./types";
+import { ClassType } from "@repo/shared";
+import { ModuleRef } from "@nestjs/core";
 
 @Injectable()
 export class NestRPCService {
-   constructor(
-      @Inject(RPC_MODULE_OPTIONS)
-      private readonly options: NestRPCModuleOptions<any>,
-   ) {}
+   constructor(private readonly moduleRef: ModuleRef) {}
 
    /**
     * ✨ Execute a method on a given controller instance using the custom RPC param injection.
@@ -19,12 +16,19 @@ export class NestRPCService {
     * @param context - 📦 Context object available to param decorators.
     * @returns The result of the invoked method.
     */
-   async execute<TResult>(
-      controllerInstance: object,
-      methodName: string,
+   async execute<TClass extends object, TResult = unknown>(
+      controllerClass: ClassType<TClass>,
+      methodName: keyof TClass,
       context: NestRpcExecutionContext,
       providedArgs: unknown[] = [],
    ): Promise<TResult> {
-      return await executeRpcMethod<TResult>(controllerInstance, methodName, context, providedArgs);
+      return await executeRpcMethod<TClass, TResult>(
+         this.moduleRef.get(controllerClass, {
+            strict: false,
+         }),
+         methodName,
+         context,
+         providedArgs,
+      );
    }
 }

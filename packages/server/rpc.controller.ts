@@ -1,6 +1,7 @@
 import { Body, Controller, type ExecutionContext, Get, Post } from "@nestjs/common";
 import { executeRpcMethod } from "./runtime/executor";
 import { ExecutionCtx } from "./decorators/execution-context.decorator";
+import { NestRPCService } from "./rpc.service";
 
 export interface DynamicControllerOptions {
    apiPrefix: string;
@@ -17,6 +18,8 @@ export function createDynamicController(options: DynamicControllerOptions) {
 
    @Controller(apiPrefix)
    class DynamicController {
+      constructor(readonly rpcService: NestRPCService) {}
+
       @Get("*")
       handleGet(@ExecutionCtx() ctx: ExecutionContext) {
          // Intentionally left  blank for now. The dynamic route handler can
