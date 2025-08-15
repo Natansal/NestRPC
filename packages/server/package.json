@@ -3,8 +3,8 @@
    "version": "0.0.0",
    "private": true,
    "scripts": {
-      "dev": "echo 'Add dev script here'",
-      "build": "echo 'Add build script here'",
+      "dev": "tsc -w -p tsconfig.json",
+      "build": "tsc -p tsconfig.json",
       "test": "echo 'Add test script here'",
       "lint": "echo 'Add lint script here'"
    },

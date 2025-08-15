@@ -1,18 +1,24 @@
 {
-  "name": "@repo/shared",
-  "version": "0.0.0",
-  "private": true,
-  "exports": {
-    ".": "./index.ts"
-  },
-  "scripts": {
-    "dev": "echo 'Add dev script here'",
-    "build": "echo 'Add build script here'",
-    "test": "echo 'Add test script here'",
-    "lint": "echo 'Add lint script here'"
-  },
-  "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
-  }
+   "name": "@repo/shared",
+   "version": "0.0.0",
+   "private": true,
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "types": "./dist/index.d.ts",
+         "default": "./dist/index.js"
+      }
+   },
+   "scripts": {
+      "dev": "tsc -w -p tsconfig.json",
+      "build": "tsc -p tsconfig.json",
+      "test": "echo 'Add test script here'",
+      "lint": "echo 'Add lint script here'"
+   },
+   "devDependencies": {
+      "@repo/eslint-config": "workspace:*",
+      "@repo/typescript-config": "workspace:*"
+   }
 }
