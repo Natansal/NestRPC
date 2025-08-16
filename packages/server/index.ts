@@ -4,3 +4,4 @@ export * from "./constants";
 export * from "./types";
 export * from "./runtime/executor";
 export * from "./decorators";
+export * from "./define-app-router"

@@ -7,9 +7,11 @@ export type ParamResolver<T extends any[] = []> = (
    context: NestRpcExecutionContext,
 ) => unknown | Promise<unknown>;
 
-export interface ParamResolverEntry<T extends any[] = []> {
+export type ParamResolverFactory = (context: NestRpcExecutionContext) => unknown | Promise<unknown>;
+
+export interface ParamResolverEntry {
    index: number;
-   resolve: ParamResolver<T>;
+   resolve: ParamResolverFactory;
 }
 
 /**
@@ -36,14 +38,12 @@ export function createRouterParamDecorator<T extends any[] = []>(factory: ParamR
          parameterIndex: number,
       ) {
          if (!propertyKey) return;
-         const method =
-            Reflect.getOwnPropertyDescriptor(target, propertyKey)?.value ?? (target as any)[propertyKey];
-         const existing: ParamResolverEntry<T>[] =
-            Reflect.getMetadata(RPC_PARAM_RESOLVERS_METADATA, method) ?? [];
+         const method = Reflect.getOwnPropertyDescriptor(target, propertyKey)?.value ?? (target as any)[propertyKey];
+         const existing: ParamResolverEntry[] = Reflect.getMetadata(RPC_PARAM_RESOLVERS_METADATA, method) ?? [];
 
-         const entry: ParamResolverEntry<T> = {
+         const entry: ParamResolverEntry = {
             index: parameterIndex,
-            resolve: (input, context) => factory(data as T, context),
+            resolve: (context) => factory(data, context),
          };
          const updated = [...existing, entry].sort((a, b) => a.index - b.index);
          Reflect.defineMetadata(RPC_PARAM_RESOLVERS_METADATA, updated, method);

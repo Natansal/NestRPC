@@ -6,7 +6,6 @@ import { createDynamicController } from "./rpc.controller";
 
 export interface NestRPCModuleOptions<T extends ClassType<any>> {
    global?: boolean;
-   routers: T[];
    apiPrefix?: string;
 }
 
@@ -19,11 +18,10 @@ export class NestRPCModule {
     * @returns A NestJS `DynamicModule` configured with the provided options.
     */
    static forRoot<T extends ClassType<any>>(options: NestRPCModuleOptions<T>): DynamicModule {
-      const { global = false, routers, apiPrefix = "/nestjs-rpc" } = options;
+      const { global = false, apiPrefix = "/nestjs-rpc" } = options;
 
       const mergedOptions: NestRPCModuleOptions<T> = {
          global,
-         routers,
          apiPrefix,
       };
 

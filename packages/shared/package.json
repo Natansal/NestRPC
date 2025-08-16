@@ -2,23 +2,25 @@
    "name": "@repo/shared",
    "version": "0.0.0",
    "private": true,
-   "type": "module",
-   "main": "dist/index.js",
+   "main": "dist/cjs/index.js",
+   "module": "dist/esm/index.js",
    "types": "dist/index.d.ts",
    "exports": {
       ".": {
-         "types": "./dist/index.d.ts",
-         "default": "./dist/index.js"
+         "require": "./dist/cjs/index.js",
+         "import": "./dist/esm/index.js",
+         "types": "./dist/index.d.ts"
       }
    },
    "scripts": {
-      "dev": "tsc -w -p tsconfig.json",
-      "build": "tsc -p tsconfig.json",
+      "dev": "tsup --watch",
+      "build": "tsup",
       "test": "echo 'Add test script here'",
       "lint": "echo 'Add lint script here'"
    },
    "devDependencies": {
       "@repo/eslint-config": "workspace:*",
-      "@repo/typescript-config": "workspace:*"
+      "@repo/typescript-config": "workspace:*",
+      "tsup": "^8.5.0"
    }
 }

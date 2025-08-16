@@ -4,9 +4,7 @@
       "outDir": "dist",
       "rootDir": "./",
       "types": ["node"],
-      "strict": true,
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true
+      "strict": true
    },
    "include": ["**/*.ts"],
    "exclude": ["node_modules", "dist"]

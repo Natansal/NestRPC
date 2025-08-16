@@ -1,9 +1,11 @@
 import "reflect-metadata";
 import { RPC_ARGS_COMPILER_METADATA, RPC_PARAM_RESOLVERS_METADATA } from "../constants";
 import { NestRpcExecutionContext } from "../types";
+import { ParamResolverFactory } from "../decorators/param.decorator";
+import { NestRPCService } from "../rpc.service";
 
 export interface RpcCompiledArgs {
-   buildArgs: (providedArgs: unknown[], context: NestRpcExecutionContext) => Promise<unknown[]> | unknown[];
+   buildArgs: (...args: Parameters<ParamResolverFactory>) => Promise<unknown[]> | unknown[];
 }
 
 /**
@@ -18,18 +20,28 @@ function getOrCompileArgsBuilder(method: Function): RpcCompiledArgs {
 
    const resolvers = (Reflect.getMetadata(RPC_PARAM_RESOLVERS_METADATA, method) ?? []) as Array<{
       index: number;
-      resolve: (data: unknown[], ctx: NestRpcExecutionContext) => unknown | Promise<unknown>;
+      resolve: ParamResolverFactory;
    }>;
 
-   const maxIndex = resolvers.reduce((max, r) => Math.max(max, r.index), -1);
+   // Enforce reserved index 0 for the raw execution context
+   if (resolvers.some((r) => r.index === 0)) {
+      throw new Error(
+         "Parameter index 0 is reserved for the execution context and cannot be decorated. Remove the decorator from the first parameter.",
+      );
+   }
 
-   const buildArgs = async (providedArgs: unknown[] = [], context: NestRpcExecutionContext): Promise<unknown[]> => {
-      const args: unknown[] = new Array(Math.max(maxIndex + 1, providedArgs.length)).fill(undefined);
-      // Place provided args first (callers may pass some args explicitly)
-      for (let i = 0; i < providedArgs.length; i++) args[i] = providedArgs[i];
-      // Apply resolver results at their indexes
-      for (const { index, resolve } of resolvers) {
-         const value = resolve(providedArgs, context);
+   // Build an effective resolver list that includes the reserved index 0 factory
+   const effectiveResolvers: Array<{ index: number; resolve: ParamResolverFactory }> = [
+      { index: 0, resolve: NestRPCService.reservedMethodInputParamFactory },
+      ...resolvers,
+   ];
+
+   const maxIndex = effectiveResolvers.reduce((max, r) => Math.max(max, r.index), -1);
+
+   const buildArgs = async (context: NestRpcExecutionContext): Promise<unknown[]> => {
+      const args: unknown[] = new Array(maxIndex + 1).fill(undefined);
+      for (const { index, resolve } of effectiveResolvers) {
+         const value = resolve(context);
          args[index] = value instanceof Promise ? await value : value;
       }
       return args;
@@ -46,20 +58,18 @@ function getOrCompileArgsBuilder(method: Function): RpcCompiledArgs {
  * @param controllerInstance - Instance containing the decorated method.
  * @param methodName - Name of the method to call.
  * @param context - Context object passed to param resolvers.
- * @param providedArgs - Optional explicit arguments to pass by position.
  * @returns The method's return value.
  */
 export async function executeRpcMethod<TClass extends object, TResult = unknown>(
    controllerInstance: TClass,
    methodName: keyof TClass,
    context: NestRpcExecutionContext,
-   providedArgs: unknown[] = [],
 ): Promise<TResult> {
    const method: Function | undefined = (controllerInstance as any)[methodName];
    if (typeof method !== "function") {
       throw new Error(`Method '${methodName.toString()}' not found on controller instance`);
    }
    const { buildArgs } = getOrCompileArgsBuilder(method);
-   const args = await buildArgs(providedArgs, context);
+   const args = await buildArgs(context);
    return await (method.apply(controllerInstance, args) as Promise<TResult> | TResult);
 }
