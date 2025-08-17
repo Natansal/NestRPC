@@ -1,10 +1,13 @@
-import { Body, Controller, type ExecutionContext, Get, Post } from "@nestjs/common";
-import { executeRpcMethod } from "./runtime/executor";
+import { Controller, type ExecutionContext, Get, Inject, NotFoundException, Param, Post, Req } from "@nestjs/common";
 import { ExecutionCtx } from "./decorators/execution-context.decorator";
 import { NestRPCService } from "./rpc.service";
+import { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
+import { ClassType, NestRpcRouterConfig } from "@repo/shared";
+import { isRoute, isRouter } from "./runtime";
 
 export interface DynamicControllerOptions {
    apiPrefix: string;
+   routes: NestRpcRouterConfig;
 }
 
 /**
@@ -18,16 +21,65 @@ export function createDynamicController(options: DynamicControllerOptions) {
 
    @Controller(apiPrefix)
    class DynamicController {
-      constructor(readonly rpcService: NestRPCService) {}
+      constructor(@Inject(NestRPCService) readonly rpcService: NestRPCService) {}
 
-      @Get("*")
-      handleGet(@ExecutionCtx() ctx: ExecutionContext) {
-         // Intentionally left  blank for now. The dynamic route handler can
-         // delegate to executeRpcMethod when router integration is wired.
+      @Post("/*path")
+      async handlePost(@ExecutionCtx() _ctx: ExecutionContext, @Param("path") _path: string[] | string) {
+         const path: string[] = Array.isArray(_path) ? _path : _path.split("/").filter(Boolean);
+
+         const { router, methodName } = this.getRouterAndMethodNameFromPath(path);
+
+         const ctx = await this.getExecutionContext(_ctx, router, router.prototype[methodName]);
+
+         return await this.runRoute(ctx, router, methodName);
       }
 
-      @Post("*")
-      handlePost(@ExecutionCtx() ctx: ExecutionContext) {}
+      async getExecutionContext(ctx: ExecutionContext, router: ClassType<any>, handler: Function) {
+         return new NestRpcExecutionContext(ctx, router, handler, NestRPCService.reservedMethodInputParamFactory);
+      }
+
+      getRouterAndMethodNameFromPath(_path: string[]) {
+         const path = [..._path];
+         const methodName = path.pop();
+
+         if (!methodName) {
+            throw new NotFoundException("No method name provided in path");
+         }
+
+         let pointer: any = options.routes;
+
+         // First: traverse the path to find the router
+         for (let i = 0; i < path.length; i++) {
+            const segment = path[i]!;
+            pointer = pointer[segment];
+
+            if (!pointer) {
+               throw new NotFoundException(`Route segment '${segment}' not found`);
+            }
+         }
+
+         // Second: validate we found a router
+         if (!isRouter(pointer)) {
+            throw new NotFoundException("Final path segment is not a router");
+         }
+
+         // Third: validate the method exists and is decorated
+         const method = pointer.prototype[methodName];
+         if (!method || !isRoute(method)) {
+            throw new NotFoundException(`Method '${methodName}' not found or not decorated as route`);
+         }
+
+         return {
+            router: pointer,
+            methodName,
+         };
+      }
+
+      async runRoute(ctx: NestRpcExecutionContext, router: ClassType<any>, methodName: string) {
+         // TODO: implement guard checks here
+         const result = await this.rpcService.execute(router, methodName, ctx);
+         return result;
+      }
    }
 
    return DynamicController;

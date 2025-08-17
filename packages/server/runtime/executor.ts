@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { RPC_ARGS_COMPILER_METADATA, RPC_PARAM_RESOLVERS_METADATA } from "../constants";
-import { NestRpcExecutionContext } from "../types";
+import { NestRpcExecutionContext } from "../nestjs-rpc-execution-context";
 import { ParamResolverFactory } from "../decorators/param.decorator";
 import { NestRPCService } from "../rpc.service";
 
@@ -65,11 +65,42 @@ export async function executeRpcMethod<TClass extends object, TResult = unknown>
    methodName: keyof TClass,
    context: NestRpcExecutionContext,
 ): Promise<TResult> {
+   const method = getRpcMethod(controllerInstance, methodName);
+   const args = await getRpcMethodArguments(controllerInstance, methodName, context);
+   return await (method.apply(controllerInstance, args) as Promise<TResult> | TResult);
+}
+
+/**
+ * 🔎 Resolve a method function from a controller instance by name.
+ *
+ * @param controllerInstance - The instance that should contain the method.
+ * @param methodName - The key/name of the method to retrieve.
+ * @returns The resolved method function.
+ * @throws Error if the property is missing or not a function.
+ */
+export function getRpcMethod<TClass extends object>(controllerInstance: TClass, methodName: keyof TClass) {
    const method: Function | undefined = (controllerInstance as any)[methodName];
    if (typeof method !== "function") {
       throw new Error(`Method '${methodName.toString()}' not found on controller instance`);
    }
+   return method;
+}
+
+/**
+ * 🧩 Build the ordered argument list for a controller method using RPC param resolvers.
+ *
+ * @param controllerInstance - Instance containing the decorated method.
+ * @param methodName - Name of the method whose arguments should be resolved.
+ * @param context - Execution context provided to param resolvers.
+ * @returns A promise that resolves to the array of arguments in call order.
+ */
+export async function getRpcMethodArguments<TClass extends object>(
+   controllerInstance: TClass,
+   methodName: keyof TClass,
+   context: NestRpcExecutionContext,
+) {
+   const method = getRpcMethod(controllerInstance, methodName);
    const { buildArgs } = getOrCompileArgsBuilder(method);
    const args = await buildArgs(context);
-   return await (method.apply(controllerInstance, args) as Promise<TResult> | TResult);
+   return args;
 }

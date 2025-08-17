@@ -1,3 +1,5 @@
-import { ExecutionContext } from "@nestjs/common";
+import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 
-export interface NestRpcExecutionContext extends ExecutionContext {}
+export interface NestRPCArgumentHost extends HttpArgumentsHost {
+   getInput<T = any>(): T;
+}

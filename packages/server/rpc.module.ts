@@ -1,12 +1,13 @@
 import { DynamicModule, Module, type Provider } from "@nestjs/common";
-import type { ClassType } from "@repo/shared";
 import { NestRPCService } from "./rpc.service";
 import { RPC_MODULE_OPTIONS } from "./constants";
 import { createDynamicController } from "./rpc.controller";
+import { NestRpcRouterConfig } from "@repo/shared";
 
-export interface NestRPCModuleOptions<T extends ClassType<any>> {
+export interface NestRPCModuleOptions {
    global?: boolean;
    apiPrefix?: string;
+   routes: NestRpcRouterConfig;
 }
 
 @Module({})
@@ -17,15 +18,16 @@ export class NestRPCModule {
     * @param options - ✅ Developer-provided options including `routers` and optional `apiPrefix` and `global`.
     * @returns A NestJS `DynamicModule` configured with the provided options.
     */
-   static forRoot<T extends ClassType<any>>(options: NestRPCModuleOptions<T>): DynamicModule {
-      const { global = false, apiPrefix = "/nestjs-rpc" } = options;
+   static forRoot(options: NestRPCModuleOptions): DynamicModule {
+      const { global = false, apiPrefix = "/nestjs-rpc", routes } = options;
 
-      const mergedOptions: NestRPCModuleOptions<T> = {
+      const mergedOptions: NestRPCModuleOptions = {
          global,
          apiPrefix,
+         routes,
       };
 
-      const DynamicController = createDynamicController({ apiPrefix });
+      const DynamicController = createDynamicController({ apiPrefix, routes });
 
       const providers: Provider[] = [NestRPCService, { provide: RPC_MODULE_OPTIONS, useValue: mergedOptions }];
 

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { RPC_PARAM_RESOLVERS_METADATA } from "../constants";
-import { NestRpcExecutionContext } from "../types";
+import { NestRpcExecutionContext } from "../nestjs-rpc-execution-context";
 
 export type ParamResolver<T extends any[] = []> = (
    data: T,
