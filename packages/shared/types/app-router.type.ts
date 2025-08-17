@@ -21,3 +21,45 @@ export type InferNestRpcRouterApp<T extends NestRpcRouterConfig> = {
    : T[K] extends NestRpcRouterConfig ? InferNestRpcRouterApp<T[K]>
    : never;
 };
+
+class A {
+   do(body: string) {
+      return 1;
+   }
+}
+class B {
+   do(body: number) {}
+}
+class C {
+   async do(body: never) {}
+}
+class D {
+   do(body: string) {}
+}
+class E {
+   do(body: string) {}
+}
+const config = {
+   a: A,
+   b: {
+      b: B,
+      c: C,
+   },
+   a1: {
+      b: {
+         c: {
+            d: {
+               e: E,
+            },
+         },
+      },
+   },
+} as const;
+
+declare const linko: InferNestRpcRouterApp<typeof config>;
+
+linko.b.c.do();
+
+const baseUrl = "http://localhost:3000/api";
+
+const final = `${baseUrl}/b/c/do`;
