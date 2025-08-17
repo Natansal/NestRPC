@@ -16,7 +16,6 @@ function App() {
   // Create the RPC client
   const client = createRpcClient<AppRouter>({
     baseUrl: 'http://localhost:3000',
-    apiPrefix: '/nest-rpc'
   })
 
   const handleTestCall = async () => {
@@ -97,22 +96,6 @@ function App() {
               <strong>Response Handling:</strong> The server response is parsed and returned as if it was a local method call
             </li>
           </ol>
-
-          <div className="code-example">
-            <h3>What You Write:</h3>
-            <pre>
-              {`const result = await client.appRouter.test('hello');
-console.log(result); // "This is the id: hello"`}
-            </pre>
-
-            <h3>What Actually Happens:</h3>
-            <pre>
-              {`POST http://localhost:3000/api/appRouter/test
-Body: "hello"
-
-Response: "This is the id: hello"`}
-            </pre>
-          </div>
         </div>
       </main>
     </div>

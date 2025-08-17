@@ -50,7 +50,5 @@ async function bootstrap() {
 
   await app.listen(PORT);
   console.log(`🚀 Server started on port: ${PORT}`);
-  console.log(`🌐 CORS enabled for development`);
-  console.log(`📝 Body parser configured to handle strings and JSON`);
 }
 bootstrap();
