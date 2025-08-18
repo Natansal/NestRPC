@@ -26,7 +26,7 @@ function App() {
     try {
       // This is the magic! It looks like a local method call
       // but it's actually making an HTTP request to the server
-      const response = await client.app.hello({ id: inputValue })
+      const response = await client.rout.route2.hello({ greeting: inputValue })
       setResult(response)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred')

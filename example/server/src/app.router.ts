@@ -3,7 +3,7 @@ import { Router, Route } from 'server';
 @Router()
 export class AppRouter {
   @Route()
-  hello({ id }: { id: string }) {
-    return `This is the id: ${id}`;
+  hello({ greeting }: { greeting: string }) {
+    return `Hello! this is the greeting: ${greeting}`;
   }
 }
