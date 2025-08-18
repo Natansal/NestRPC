@@ -2,18 +2,6 @@
 
 This package provides a type-safe RPC client for communicating with NestRPC servers.
 
-## Architecture
-
-The package has been split into modular components for better maintainability and readability:
-
-### Core Modules
-
-- **`types.ts`** - Type definitions and interfaces
-- **`utils.ts`** - Utility functions for URL normalization and response handling
-- **`http-client.ts`** - HTTP request execution and RPC call creation
-- **`proxy.ts`** - Proxy object creation for method chaining
-- **`create-rpc-client.ts`** - Main client creation functions
-
 ### Main Exports
 
 ```typescript
@@ -79,11 +67,3 @@ const client = createRpcClient<typeof serverRouter>({
 
 - `createRpcClient()` - Main function to create RPC clients
 - `createTypedRpcClient()` - Type-safe client creation alias
-
-## Benefits of Modular Structure
-
-1. **Separation of Concerns** - Each module has a single responsibility
-2. **Testability** - Individual functions can be tested in isolation
-3. **Maintainability** - Easier to locate and modify specific functionality
-4. **Reusability** - Utility functions can be imported independently
-5. **Readability** - Smaller files are easier to understand and navigate
