@@ -6,7 +6,6 @@ import { config } from './nest-rpc.config';
 @Module({
   imports: [
     NestRPCModule.forRoot({
-      apiPrefix: '/nest-rpc',
       routes: config,
     }),
   ],

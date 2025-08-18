@@ -20,6 +20,7 @@ export default defineConfig([
       target: "es2022",
       minify: false,
       outDir: "dist/esm",
+      outExtension: () => ({ js: ".js" }),
    },
    {
       entry: ["index.ts"],
