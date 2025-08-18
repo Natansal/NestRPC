@@ -23,6 +23,9 @@ importers:
 
   example/client:
     dependencies:
+      client:
+        specifier: workspace:*
+        version: link:../../packages/client
       react:
         specifier: ^19.1.1
         version: 19.1.1
