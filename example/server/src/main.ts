@@ -22,6 +22,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
 
+  // TODO remove this when implementing batch
   // Configure body parser to handle different content types
   app.use((req, res, next) => {
     // Handle string bodies by converting them to a format the server can process
