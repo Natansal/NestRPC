@@ -1,8 +1,21 @@
-import { Controller, type ExecutionContext, Get, Inject, NotFoundException, Param, Post, Req } from "@nestjs/common";
+import {
+   BadRequestException,
+   Body,
+   Controller,
+   type ExecutionContext,
+   Get,
+   HttpException,
+   Inject,
+   NotFoundException,
+   Param,
+   Post,
+   Req,
+   UnauthorizedException,
+} from "@nestjs/common";
 import { ExecutionCtx } from "./decorators/execution-context.decorator";
 import { NestRPCService } from "./rpc.service";
 import { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
-import { ClassType, NestRpcRouterConfig } from "@repo/shared";
+import { BatchCall, BatchResponse, ClassType, NestRpcRouterConfig } from "@repo/shared";
 import { isRoute, isRouter } from "./runtime";
 
 export interface DynamicControllerOptions {
@@ -23,6 +36,59 @@ export function createDynamicController(options: DynamicControllerOptions) {
    class DynamicController {
       constructor(@Inject(NestRPCService) readonly rpcService: NestRPCService) {}
 
+      @Post("/batch")
+      async handleBatch(@Body() body: BatchCall[], @ExecutionCtx() _ctx: ExecutionContext) {
+         if (typeof body === "undefined") {
+            throw new Error("Received undefined body for batch:( Please use a body parser");
+         }
+
+         const results: BatchResponse[] = [];
+
+         await Promise.all(
+            body.map(async (call, index) => {
+               const { id, input, path } = call;
+               const pathSegments = path.split("/").filter(Boolean);
+               try {
+                  const { router, methodName } = this.getRouterAndMethodNameFromPath(pathSegments);
+
+                  const ctx = await this.getExecutionContext(_ctx, router, router.prototype[methodName], input);
+
+                  const result = await this.runRoute(ctx, router, methodName);
+
+                  results[index] = { id, response: { data: result } };
+               } catch (e) {
+                  if (e instanceof Error) {
+                     if (e instanceof HttpException) {
+                        results[index] = {
+                           id,
+                           error: {
+                              code: e.getStatus(),
+                              message: e.message,
+                           },
+                        };
+                     } else {
+                        results[index] = {
+                           id,
+                           error: {
+                              code: 500,
+                              message: "Internal server error",
+                           },
+                        };
+                     }
+                  } else {
+                     results[index] = {
+                        id,
+                        error: {
+                           code: 500,
+                           message: String(e),
+                        },
+                     };
+                  }
+               }
+            }),
+         );
+      }
+
       @Post("/*path")
       async handlePost(@ExecutionCtx() _ctx: ExecutionContext, @Param("path") _path: string[] | string) {
          const path: string[] = Array.isArray(_path) ? _path : _path.split("/").filter(Boolean);
@@ -34,8 +100,8 @@ export function createDynamicController(options: DynamicControllerOptions) {
          return await this.runRoute(ctx, router, methodName);
       }
 
-      async getExecutionContext(ctx: ExecutionContext, router: ClassType<any>, handler: Function) {
-         return new NestRpcExecutionContext(ctx, router, handler, NestRPCService.reservedMethodInputParamFactory);
+      async getExecutionContext(ctx: ExecutionContext, router: ClassType<any>, handler: Function, input: any) {
+         return new NestRpcExecutionContext(ctx, router, handler, input);
       }
 
       getRouterAndMethodNameFromPath(_path: string[]) {

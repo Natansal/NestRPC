@@ -8,7 +8,7 @@ export class NestRpcExecutionContext implements ExecutionContext {
       private readonly eCtx: ExecutionContext,
       private readonly router: ClassType<any>,
       private readonly handler: Function,
-      private readonly getInput: (ctx: NestRpcExecutionContext) => any,
+      private readonly input: any,
    ) {}
 
    get _executionContext(): ExecutionContext {
@@ -52,7 +52,7 @@ export class NestRpcExecutionContext implements ExecutionContext {
       return {
          ...this.eCtx.switchToHttp(),
          getInput<T = any>() {
-            return that.getInput(that) as T;
+            return that.input as T;
          },
       };
    }

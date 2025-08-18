@@ -10,13 +10,7 @@ export class NestRPCService {
    constructor(@Inject(ModuleRef) private readonly moduleRef: ModuleRef) {}
 
    static reservedMethodInputParamFactory: ParamResolverFactory = (ctx: NestRpcExecutionContext) => {
-      const req = ctx.switchToHttp().getRequest();
-
-      // Body: works for both Express and Fastify (if Nest body parser is enabled)
-      const body: unknown = req.body;
-
-      // TODO: for batch requests, we need to return the data for the specific context
-      return body;
+      return ctx.switchToHttpRpc().getInput();
    };
 
    /**
