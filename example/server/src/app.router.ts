@@ -1,10 +1,9 @@
-import { createParamDecorator, Req } from '@nestjs/common';
-import { createRouterParamDecorator, Route, Router } from 'server';
+import { Router, Route } from 'server';
 
 @Router()
 export class AppRouter {
   @Route()
-  test(id: string, @Req() req: Request) {
-    return `This is the id: ${JSON.stringify(id)}`;
+  hello({ greeting }: { greeting: string }) {
+    return `Hello! this is the greeting: ${greeting}`;
   }
 }

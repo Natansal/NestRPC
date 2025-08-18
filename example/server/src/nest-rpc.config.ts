@@ -7,3 +7,5 @@ export const config = defineAppRouter({
     route2: AppRouter,
   },
 });
+
+export type ConfigType = typeof config;
