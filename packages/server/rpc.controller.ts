@@ -9,13 +9,23 @@ import {
    NotFoundException,
    Param,
    Post,
+   Query,
    Req,
    UnauthorizedException,
 } from "@nestjs/common";
 import { ExecutionCtx } from "./decorators/execution-context.decorator";
 import { NestRPCService } from "./rpc.service";
 import { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
-import { BatchCall, BatchResponse, ClassType, NestRpcRouterConfig } from "@repo/shared";
+import {
+   BatchCall,
+   BatchItem,
+   BatchQuery,
+   BatchResponse,
+   ClassType,
+   decodeBatchQuery,
+   encodeBatchQuery,
+   NestRpcRouterConfig,
+} from "@repo/shared";
 import { isRoute, isRouter } from "./runtime";
 
 export interface DynamicControllerOptions {
@@ -36,75 +46,108 @@ export function createDynamicController(options: DynamicControllerOptions) {
    class DynamicController {
       constructor(@Inject(NestRPCService) readonly rpcService: NestRPCService) {}
 
-      @Post("/batch")
-      async handleBatch(@Body() body: BatchCall[], @ExecutionCtx() _ctx: ExecutionContext) {
+      memoizedRouterAndMethodName: Map<string, ReturnType<typeof this.getRouterAndMethodNameFromPath>> = new Map();
+
+      @Post()
+      async handleBatch(
+         @Body() body: BatchCall[],
+         @ExecutionCtx() nestExecutionContext: ExecutionContext,
+         @Query("calls") rawCalls: string,
+      ) {
          if (typeof body === "undefined") {
-            throw new Error("Received undefined body for batch:( Please use a body parser");
+            throw new Error("Received undefined body for rpc handler:( Please use a body parser");
+         }
+
+         const calls = decodeBatchQuery(rawCalls);
+
+         if (calls.length === 0) {
+            console.warn("Got empty batch request");
+            return [];
+         }
+
+         if (body.length !== calls.length) {
+            throw new Error("Body and routes length mismatch");
          }
 
          const results: BatchResponse[] = [];
 
          await Promise.all(
-            body.map(async (call, index) => {
-               const { id, input, path } = call;
-               const pathSegments = path.split("/").filter(Boolean);
-               try {
-                  const { router, methodName } = this.getRouterAndMethodNameFromPath(pathSegments);
+            body.map(async (bodyCall, i) => {
+               const queryCall = calls.find((call) => call.id === bodyCall.id);
 
-                  const ctx = await this.getExecutionContext(_ctx, router, router.prototype[methodName], input);
-
-                  const result = await this.runRoute(ctx, router, methodName);
-
-                  results[index] = { id, response: { data: result } };
-               } catch (e) {
-                  if (e instanceof Error) {
-                     if (e instanceof HttpException) {
-                        results[index] = {
-                           id,
-                           error: {
-                              code: e.getStatus(),
-                              message: e.message,
-                           },
-                        };
-                     } else {
-                        results[index] = {
-                           id,
-                           error: {
-                              code: 500,
-                              message: "Internal server error",
-                           },
-                        };
-                     }
-                  } else {
-                     results[index] = {
-                        id,
-                        error: {
-                           code: 500,
-                           message: String(e),
-                        },
-                     };
-                  }
+               if (!queryCall) {
+                  throw new Error(`queryCall with id ${bodyCall.id} not found`);
                }
+
+               const call = {
+                  ...bodyCall,
+                  ...queryCall,
+               };
+
+               const result = await this.handleRpcCall(call, nestExecutionContext);
+               results[i] = result;
             }),
          );
+
+         return results;
       }
 
-      @Post("/*path")
-      async handlePost(@ExecutionCtx() _ctx: ExecutionContext, @Param("path") _path: string[] | string) {
-         const path: string[] = Array.isArray(_path) ? _path : _path.split("/").filter(Boolean);
+      async handleRpcCall(call: BatchItem, _ctx: ExecutionContext): Promise<BatchResponse> {
+         const { input, path, id } = call;
 
-         const { router, methodName } = this.getRouterAndMethodNameFromPath(path);
+         try {
+            const { router, methodName } = this.getRouterAndMethodNameFromPath(path);
 
-         const ctx = await this.getExecutionContext(_ctx, router, router.prototype[methodName]);
+            const ctx = new NestRpcExecutionContext(_ctx, router, router, input);
 
-         return await this.runRoute(ctx, router, methodName);
+            const result = await this.runRoute(ctx, router, methodName);
+
+            return { id, response: { data: result } };
+         } catch (error) {
+            return this.handleRpcError(call, error);
+         }
       }
 
-      async getExecutionContext(ctx: ExecutionContext, router: ClassType<any>, handler: Function, input: any) {
-         return new NestRpcExecutionContext(ctx, router, handler, input);
+      handleRpcError(call: BatchItem, e: unknown): BatchResponse {
+         if (!(e instanceof Error)) {
+            return {
+               id: call.id,
+               error: {
+                  code: 500,
+                  message: e == null ? "Unknown error" : String(e),
+                  name: "NonErrorThrow",
+               },
+            };
+         }
+
+         if (!(e instanceof HttpException)) {
+            return {
+               id: call.id,
+               error: {
+                  code: 500,
+                  message: "Internal server error",
+                  name: e.name || "Error",
+               },
+            };
+         }
+
+         const status = e.getStatus();
+         const response = e.getResponse();
+
+         return {
+            id: call.id,
+            error: {
+               code: status,
+               message: typeof response === "string" ? response : e.message,
+               name: e.name,
+            },
+         };
       }
 
-      getRouterAndMethodNameFromPath(_path: string[]) {
+      getRouterAndMethodNameFromPath(_path: string[]): { router: ClassType<any>; methodName: string } {
+         const existing = this.memoizedRouterAndMethodName.get(_path.join("."));
+         if (existing) return existing;
+
          const path = [..._path];
          const methodName = path.pop();
 
@@ -135,10 +178,14 @@ export function createDynamicController(options: DynamicControllerOptions) {
             throw new NotFoundException(`Method '${methodName}' not found or not decorated as route`);
          }
 
-         return {
+         const result = {
             router: pointer,
             methodName,
          };
+
+         this.memoizedRouterAndMethodName.set(_path.join("."), result);
+
+         return result;
       }
 
       async runRoute(ctx: NestRpcExecutionContext, router: ClassType<any>, methodName: string) {

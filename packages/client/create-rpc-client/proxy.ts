@@ -4,32 +4,22 @@ import { createRpcCall } from "./http-client";
 /**
  * Creates a proxy object that mimics the server's router structure
  */
-export function createClientProxy(
-  config: RpcClientConfig,
-  pathSegments: string[] = []
-): any {
-  const rpcCall = createRpcCall(config);
+export function createClientProxy(config: RpcClientConfig, pathSegments: string[] = []) {
+   const rpcCall = createRpcCall(config);
 
-  return new Proxy(() => {}, {
-    get(_, propertyKey: string | symbol) {
-      if (typeof propertyKey === "symbol") {
-        throw new Error("Invalid property name");
-      }
+   return new Proxy((() => {}) as any as ((body: any) => Promise<any>) & Record<string, any>, {
+      get(_, propertyKey: string | number | symbol) {
+         if (typeof propertyKey !== "string") {
+            throw new Error(
+               `Invalid property name: Property name must be of type string, got: ${propertyKey.toString()}`,
+            );
+         }
 
-      // Skip internal properties
-      if (
-        propertyKey.startsWith("__") ||
-        propertyKey === "constructor" ||
-        propertyKey === "prototype"
-      ) {
-        return undefined;
-      }
-
-      return createClientProxy(config, [...pathSegments, propertyKey]);
-    },
-    async apply(_, __, args: any[]) {
-      const body = args.length > 0 ? args[0] : undefined;
-      return rpcCall(pathSegments, body);
-    },
-  });
+         return createClientProxy(config, [...pathSegments, propertyKey]);
+      },
+      async apply(_, __, args: any[]) {
+         const body = args[0];
+         return rpcCall(pathSegments, body);
+      },
+   });
 }

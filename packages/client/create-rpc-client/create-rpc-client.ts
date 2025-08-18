@@ -47,17 +47,6 @@ import { createClientProxy } from "./proxy";
  * });
  * ```
  */
-export function createRpcClient<
-  T extends InferNestRpcRouterApp<NestRpcRouterConfig>,
->(config: RpcClientConfig): T {
-  return createClientProxy(config) as T;
-}
-
-/**
- * Creates a typed RPC client (alias for createRpcClient)
- */
-export function createTypedRpcClient<
-  T extends InferNestRpcRouterApp<NestRpcRouterConfig>,
->(config: RpcClientConfig): T {
-  return createRpcClient<T>(config);
+export function createRpcClient<T extends InferNestRpcRouterApp<NestRpcRouterConfig>>(config: RpcClientConfig): T {
+   return createClientProxy(config) as T;
 }
