@@ -7,8 +7,8 @@ export * from "./types";
 // Utility functions
 export * from "./utils";
 
-// HTTP client functionality
+// HTTP client functionality (internal)
 export * from "./http-client";
 
-// Proxy creation
+// Proxy creation (internal)
 export * from "./proxy";

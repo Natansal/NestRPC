@@ -48,5 +48,16 @@ import { createClientProxy } from "./proxy";
  * ```
  */
 export function createRpcClient<T extends InferNestRpcRouterApp<NestRpcRouterConfig>>(config: RpcClientConfig): T {
-   return createClientProxy(config) as T;
+   const normalized: Required<RpcClientConfig> = {
+      baseUrl: config.baseUrl,
+      apiPrefix: config.apiPrefix ?? "/nestjs-rpc",
+      fetchOptions: config.fetchOptions ?? {},
+      batch: config.batch ?? {
+         enabled: true,
+         maxBatchSize: 20,
+         debounceMs: 50,
+         maxUrlSize: 2048,
+      },
+   };
+   return createClientProxy(normalized) as T;
 }
