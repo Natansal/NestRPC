@@ -11,6 +11,9 @@
          "require": "./dist/cjs/index.js"
       }
    },
+   "publishConfig": {
+      "access": "public"
+   },
    "scripts": {
       "dev": "tsup --watch",
       "build": "tsup",
