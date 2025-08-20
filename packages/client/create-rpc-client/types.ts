@@ -22,14 +22,6 @@ export interface RpcClientConfig {
 }
 
 /**
- * 📦 HTTP response handler result
- */
-export interface HttpResponseResult {
-   data: any;
-   contentType: string;
-}
-
-/**
  * 🔗 Configuration interface for batch request handling
  *
  * Controls how multiple RPC calls are grouped together into single HTTP requests
