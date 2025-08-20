@@ -3,7 +3,7 @@ import { executeRpcMethod, getRpcMethodArguments } from "./runtime/executor";
 import type { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
 import { ClassType } from "@repo/shared";
 import { ModuleRef } from "@nestjs/core";
-import { ParamResolverFactory } from "./decorators";
+import { ParamResolverFactory } from "./decorators/param.decorator";
 
 @Injectable()
 export class NestRPCService {

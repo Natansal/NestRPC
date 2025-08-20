@@ -1,4 +1,4 @@
 export * from "./router.decorator";
-export * from "./param.decorator";
+export { type ParamResolver, createRouterParamDecorator } from "./param.decorator";
 export * from "./route.decorator";
 export * from "./nestjs.decorator";
