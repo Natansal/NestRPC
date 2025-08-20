@@ -1,69 +1,82 @@
-# NestRPC Client Package
+## NestRPC Client
 
-This package provides a type-safe RPC client for communicating with NestRPC servers.
+Type-safe, ergonomic RPC client for NestRPC servers. Focus on your app logic—this client handles batching, transport, and great DX.
 
-### Main Exports
+### ✨ Features
+- **Type-safe calls** inferred directly from your server router
+- **Smart batching** with debounce and max-size controls
+- **Tiny API surface**, zero boilerplate
+- **Fetch-compatible** with full control via `fetchOptions`
 
-```typescript
-import {
-  createRpcClient,
-  createTypedRpcClient,
-  type RpcClientConfig,
-} from "@repo/client";
+### Installation
+This package is part of the monorepo. Build locally:
+
+```bash
+pnpm -w build
 ```
 
-## Usage
-
-### Basic Client Creation
-
-```typescript
+### Quick Start
+```ts
 import { createRpcClient } from "@repo/client";
 
-const client = createRpcClient<typeof serverRouter>({
+// The generic type argument is inferred from your server router type
+const client = createRpcClient<typeof appRouter>({
   baseUrl: "http://localhost:3000",
-  apiPrefix: "/api/rpc",
 });
 
-// Use the client
-const user = await client.users.getUser({ id: 123 });
+const user = await client.users.get({ id: "123" });
 ```
 
-### Advanced Configuration
+### Configuration
+```ts
+import { createRpcClient } from "@repo/client";
 
-```typescript
-const client = createRpcClient<typeof serverRouter>({
+const client = createRpcClient<typeof appRouter>({
   baseUrl: "https://api.example.com",
-  apiPrefix: "/rpc",
+  apiPrefix: "/nestjs-rpc", // default
   fetchOptions: {
     headers: { Authorization: "Bearer token" },
-    timeout: 5000,
+    // any standard fetch options
+  },
+  batch: {
+    enabled: true,      // default
+    maxBatchSize: 20,   // default
+    debounceMs: 50,     // default
+    maxUrlSize: 2048,   // default
   },
 });
 ```
 
-## Module Breakdown
+### API Overview
+- `createRpcClient<T>(config: RpcClientConfig): T` — create a type-safe client proxy.
+- `RpcClientConfig` — configuration object with sensible defaults.
 
-### Types (`types.ts`)
+### Error Handling
+Errors are normalized as `RpcError` instances with semantic fields:
+```ts
+try {
+  await client.users.get({ id: "missing" });
+} catch (e) {
+  if (e instanceof RpcError) {
+    console.error(e.code, e.name, e.message);
+  }
+}
+```
 
-- `RpcClientConfig` - Configuration interface for the RPC client
-- `HttpResponseResult` - HTTP response handling result
+### Batching Behavior
+Multiple calls executed within the debounce window are grouped into a single HTTP request, minimizing network overhead. You can disable batching by setting `batch: false`.
 
-### Utilities (`utils.ts`)
+### Examples
+```ts
+// Nested routes
+await client.users.posts.list({ userId: "u1" });
 
-- `normalizeBaseUrl()` - Removes trailing slashes from base URLs
-- `handleHttpResponse()` - Processes HTTP responses and parses data
-- `createEndpointUrl()` - Constructs endpoint URLs for RPC calls
+// Custom fetch options per environment
+const client = createRpcClient<typeof appRouter>({
+  baseUrl: import.meta.env.VITE_API_URL,
+  fetchOptions: { credentials: "include" },
+});
+```
 
-### HTTP Client (`http-client.ts`)
-
-- `executeRpcCall()` - Executes individual RPC HTTP requests
-- `createRpcCall()` - Creates configured RPC call functions
-
-### Proxy (`proxy.ts`)
-
-- `createClientProxy()` - Creates the proxy object for method chaining
-
-### Main Client (`create-rpc-client.ts`)
-
-- `createRpcClient()` - Main function to create RPC clients
-- `createTypedRpcClient()` - Type-safe client creation alias
+### License
+MIT

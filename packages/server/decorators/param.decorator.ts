@@ -2,11 +2,19 @@ import "reflect-metadata";
 import { RPC_PARAM_RESOLVERS_METADATA } from "../constants";
 import { NestRpcExecutionContext } from "../nestjs-rpc-execution-context";
 
+/**
+ * 🪄 Function that computes a parameter value for a route method.
+ *
+ * Receives the decoration-time input and the per-request execution context.
+ */
 export type ParamResolver<T extends any[] = []> = (
    data: T,
    context: NestRpcExecutionContext,
 ) => unknown | Promise<unknown>;
 
+/**
+ * 🏭 Zero-arg factory stored on a parameter that can resolve the value at call time.
+ */
 export type ParamResolverFactory = (context: NestRpcExecutionContext) => unknown | Promise<unknown>;
 
 export interface ParamResolverEntry {

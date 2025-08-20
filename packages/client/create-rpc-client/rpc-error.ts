@@ -1,9 +1,9 @@
 import type { BatchResponse } from "@repo/shared";
 
 /**
- * ❗ RpcError: standardized error for client-side handling
+ * ❗ RpcError: normalized error for client consumption.
  *
- * Wraps server-provided errors and network/parse errors into a single shape.
+ * Wraps HTTP/non-HTTP failures and server-provided errors into a single, typed error.
  */
 export class RpcError extends Error {
    public readonly code: number;
@@ -21,6 +21,9 @@ export class RpcError extends Error {
       Object.setPrototypeOf(this, RpcError.prototype);
    }
 
+   /**
+    * Create an `RpcError` from a failed `fetch()` call.
+    */
    static fromFetchError(err: unknown): RpcError {
       if (err instanceof DOMException && err.name === "AbortError") {
          return new RpcError({
@@ -37,6 +40,9 @@ export class RpcError extends Error {
       });
    }
 
+   /**
+    * Create an `RpcError` for invalid/failed JSON parsing.
+    */
    static fromInvalidJson(err: unknown, response: Response) {
       return new RpcError({
          code: -3, // custom code for invalid JSON

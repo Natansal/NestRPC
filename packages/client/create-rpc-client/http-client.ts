@@ -2,15 +2,12 @@ import { BatchResponse } from "@repo/shared";
 import { RpcError } from "./rpc-error";
 
 /**
- * 🌐 Execute an HTTP RPC call
+ * 🌐 Execute an HTTP RPC call and return parsed responses.
  *
- * Sends a POST request to the RPC endpoint with an optional JSON body and returns the parsed JSON response.
- * Handles network errors, non-2xx responses, and invalid JSON parsing with rich error details.
- *
- * @param endpoint - 🔗 Fully-qualified URL including the encoded `calls` query string
- * @param body - 📦 Request body to JSON-serialize (typically an array of batch items)
- * @param fetchOptions - ⚙️ Additional `fetch` options (headers, signal, credentials, etc.)
- * @returns ✅ Parsed JSON payload from the server
+ * @param endpoint - Fully-qualified URL to the RPC endpoint (includes encoded `calls`).
+ * @param body - JSON-serializable request payload.
+ * @param fetchOptions - Extra `fetch` options merged into the request.
+ * @returns Array of batch item responses.
  */
 export async function executeRpcCall(endpoint: string, body: any, fetchOptions: RequestInit): Promise<BatchResponse[]> {
    const { headers, ...rest } = fetchOptions;

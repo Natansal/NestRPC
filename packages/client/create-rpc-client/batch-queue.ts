@@ -9,10 +9,10 @@ interface BatchQueueItem extends BatchItem {
 }
 
 /**
- * 🧵 BatchQueue
+ * 🧵 BatchQueue: queues and flushes RPC calls efficiently.
  *
- * Queues RPC calls, batches them by size/time, sends a single HTTP request, and
- * dispatches individual responses back to their original call sites.
+ * Accepts `BatchConfig` and handles URL-size limits, max batch size, debounce,
+ * and error propagation for each individual call.
  */
 export class BatchQueue {
    private queue: BatchQueueItem[] = [];
@@ -20,6 +20,16 @@ export class BatchQueue {
    private readonly config: Required<BatchConfig>;
    private nextId: number = 1;
 
+   /**
+    * Create a `BatchQueue` instance.
+    *
+    * Defaults applied when omitted:
+    * - `maxBatchSize`: 20
+    * - `debounceMs`: 50
+    * - `maxUrlSize`: 2048
+    * - `fetchOptions`: {}
+    * - `enabled`: true
+    */
    constructor(config: BatchConfig) {
       const {
          maxBatchSize = 20,
@@ -43,8 +53,13 @@ export class BatchQueue {
 
       // If items remain in queue, flush immediately
       if (this.queue.length > 0) this.flush();
+      // Else -< reset the id count
+      else this.nextId = 1;
    };
 
+   /**
+    * Queue a call for batching; flushes immediately if batching is disabled.
+    */
    public add(_item: Omit<BatchQueueItem, "id">): void {
       const id = (this.nextId++).toString();
       const item = { ..._item, id };
@@ -73,15 +88,24 @@ export class BatchQueue {
       this.setTimeout();
    }
 
+   /**
+    * Build the batch URL including encoded `calls` parameter for the provided batch.
+    */
    private buildUrl(batch: BatchQuery[]) {
       return `${this.config.endpoint}?calls=${encodeBatchQuery(batch)}`;
    }
 
+   /**
+    * Clear the pending debounce timer if present.
+    */
    private clearTimeout() {
       if (this.timeout) clearTimeout(this.timeout);
       this.timeout = null;
    }
 
+   /**
+    * Start/restart the debounce timer to flush after `debounceMs`.
+    */
    private setTimeout() {
       this.clearTimeout();
       this.timeout = setTimeout(this.flush, this.config.debounceMs);

@@ -3,6 +3,12 @@ import { HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from "@nestjs/co
 import { ClassType } from "@repo/shared";
 import { NestRPCArgumentHost } from "./types";
 
+/**
+ * 🧠 NestRpcExecutionContext
+ *
+ * Wrapper around Nest's `ExecutionContext` that exposes Router/Handler typing
+ * and the RPC input payload while delegating standard context methods.
+ */
 export class NestRpcExecutionContext implements ExecutionContext {
    constructor(
       private readonly eCtx: ExecutionContext,
@@ -23,14 +29,23 @@ export class NestRpcExecutionContext implements ExecutionContext {
       return this.eCtx.getArgByIndex<T>(index);
    }
 
+   /**
+    * 🧭 The router class associated with the current RPC handler.
+    */
    getClass<T = any>(): ClassType<T> {
       return this.router as ClassType<T>;
    }
 
+   /**
+    * 🛠️ The method (handler) being invoked for this RPC call.
+    */
    getHandler(): Function {
       return this.handler;
    }
 
+   /**
+    * 🏷️ Always returns `"http-rpc"` for RPC execution type.
+    */
    getType<TContext extends string = "http-rpc">(): TContext {
       return "http-rpc" as TContext;
    }
@@ -47,6 +62,9 @@ export class NestRpcExecutionContext implements ExecutionContext {
       return this.eCtx.switchToRpc();
    }
 
+   /**
+    * 📦 Specialized host exposing the RPC input via `getInput()` alongside HTTP interfaces.
+    */
    switchToHttpRpc(): NestRPCArgumentHost {
       const that = this;
       return {

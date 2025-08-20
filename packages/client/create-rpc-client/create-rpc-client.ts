@@ -3,47 +3,39 @@ import type { RpcClientConfig } from "./types";
 import { createClientProxy } from "./proxy";
 
 /**
- * 🚀 Creates an RPC client proxy that mimics the server's router structure
- * and makes HTTP calls to execute remote methods.
+ * 🚀 Create a type-safe RPC client proxy that mirrors your server router and performs HTTP calls.
  *
- * This function creates a type-safe proxy object that allows you to call
- * remote methods as if they were local functions. The proxy automatically
- * handles HTTP requests, serialization, and routing based on the method
- * call chain.
+ * The returned proxy lets you call remote methods as if they were local functions.
+ * Requests are automatically serialized, batched, and routed based on the method chain you access.
  *
- * @template T - 🎯 The inferred router type from the server configuration
- * @param config - ⚙️ Configuration object for the RPC client
- * @param config.baseUrl - 🌐 Base URL of the server (e.g., "http://localhost:3000")
- * @param config.apiPrefix - 🛣️ API prefix path (defaults to "/nestjs-rpc")
- * @param config.fetchOptions - 🔧 Custom fetch options to merge with requests
+ * Defaults applied when omitted:
+ * - `apiPrefix` ➜ "/nestjs-rpc"
+ * - `fetchOptions` ➜ `{}`
+ * - `batch` ➜ `{ enabled: true, maxBatchSize: 20, debounceMs: 50, maxUrlSize: 2048 }`
  *
+ * @typeParam T - 🎯 Inferred app client surface from your server router config.
+ * @param config - ⚙️ Client configuration object
+ * @param config.baseUrl - 🌐 Base URL of your server (e.g. "http://localhost:3000")
+ * @param config.apiPrefix - 🛣️ Controller mount path; Default: "/nestjs-rpc"
+ * @param config.fetchOptions - 🔧 Default fetch options merged into every request; Default: `{}`
+ * @param config.batch - 📦 Batching config: `false` disables, `true` enables with defaults, or provide an object to tune
+ *   - Default object values: `{ enabled: true, maxBatchSize: 20, debounceMs: 50, maxUrlSize: 2048 }`
  * @returns 🎭 A proxy object that mimics the server's router structure
  *
  * @example
- * ```typescript
- * // Create a client for a server with user and post routes
- * const client = createRpcClient<typeof serverRouter>({
- *   baseUrl: "http://localhost:3000",
- *   apiPrefix: "/api/rpc"
- * });
- *
- * // Call remote methods as if they were local
- * const user = await client.users.getUser({ id: 123 });
- * const posts = await client.posts.listPosts({ limit: 10 });
- *
- * // Nested routing is supported
- * const userPosts = await client.users.posts.getUserPosts({ userId: 123 });
+ * ```ts
+ * // Basic
+ * const client = createRpcClient<typeof appRouter>({ baseUrl: "http://localhost:3000" });
+ * const user = await client.users.get({ id: "123" });
  * ```
  *
  * @example
- * ```typescript
- * // With custom fetch options
- * const client = createRpcClient<typeof serverRouter>({
+ * ```ts
+ * // Custom fetch and batching
+ * const client = createRpcClient<typeof appRouter>({
  *   baseUrl: "https://api.example.com",
- *   fetchOptions: {
- *     headers: { "Authorization": "Bearer token" },
- *     timeout: 5000
- *   }
+ *   fetchOptions: { headers: { Authorization: "Bearer token" } },
+ *   batch: { enabled: true, maxBatchSize: 10, debounceMs: 25 },
  * });
  * ```
  */

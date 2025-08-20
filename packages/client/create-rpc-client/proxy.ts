@@ -5,10 +5,14 @@ import { RpcError } from "./rpc-error";
 import { normalizeBaseUrl } from "./utils";
 
 /**
- * 🪄 Creates a proxy object that mimics the server's router structure.
+ * 🪄 Create a nested proxy that mirrors the server's router structure and batches calls.
  *
  * A single `BatchQueue` instance is shared across the entire proxy tree so that
  * calls on different branches can still be batched into the same HTTP request.
+ *
+ * @param config - Fully normalized client configuration.
+ * @param pathSegments - Accumulated path segments for the current proxy branch.
+ * @param sharedQueue - Shared BatchQueue instance for batching across branches.
  */
 export function createClientProxy(
    config: Required<RpcClientConfig>,
@@ -22,7 +26,7 @@ export function createClientProxy(
    const batchQueue =
       sharedQueue ??
       new BatchQueue({
-         endpoint: `${normalizeBaseUrl(baseUrl)}${apiPrefix}`,
+         endpoint: `${normalizeBaseUrl(baseUrl)}/${apiPrefix}`,
          fetchOptions,
          enabled: batchEnabled,
          ...batchConfig,

@@ -8,7 +8,7 @@ import { NestRpcRouterConfig } from "@repo/shared";
  *
  * @typeParam T - 🧠 The shape of your router config map.
  * @param config - 🗺️ A map of route keys to router classes or nested configs.
- * @returns 🔁 The exact same config object with strong typings preserved.
+ * @returns 🔁 The config object to be used in the NestRPCModule.forRoot()
  */
 export function defineAppRouter<T extends NestRpcRouterConfig>(config: T): T {
    return config;

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,9 +21,6 @@ async function bootstrap() {
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
-
-  // Add global prefix if needed
-  app.setGlobalPrefix('');
 
   await app.listen(PORT);
   console.log(`🚀 Server started on port: ${PORT}`);

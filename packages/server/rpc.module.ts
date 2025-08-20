@@ -4,9 +4,30 @@ import { RPC_MODULE_OPTIONS } from "./constants";
 import { createDynamicController } from "./rpc.controller";
 import { NestRpcRouterConfig } from "@repo/shared";
 
+/**
+ * 🧰 Options for configuring `NestRPCModule`
+ *
+ * Provides settings for how the RPC controller is mounted and which routers
+ * are exposed.
+ *
+ * - Defaults:
+ *   - `global` ➜ `false`
+ *   - `apiPrefix` ➜ `"/nestjs-rpc"`
+ */
 export interface NestRPCModuleOptions {
+   /**
+    * 🌍 Register providers controller-wide as global Nest providers.
+    * - Default: `false`
+    */
    global?: boolean;
+   /**
+    * 🛣️ Base path where the dynamic RPC controller is mounted.
+    * - Default: `"/nestjs-rpc"`
+    */
    apiPrefix?: string;
+   /**
+    * 🗺️ Declarative router configuration (map of keys ➜ router classes or nested maps).
+    */
    routes: NestRpcRouterConfig;
 }
 
