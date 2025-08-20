@@ -1,7 +1,6 @@
 {
-   "name": "server",
-   "version": "0.0.0",
-   "private": true,
+   "name": "@nestjs-rpc/server",
+   "version": "1.0.0",
    "main": "dist/cjs/index.js",
    "module": "dist/esm/index.js",
    "types": "dist/index.d.ts",
@@ -23,11 +22,11 @@
       "@nestjs/core": "^11.1.6",
       "@nestjs/platform-express": "^11.1.6",
       "@repo/eslint-config": "workspace:*",
-      "@repo/shared": "workspace:*",
       "@repo/typescript-config": "workspace:*",
       "tsup": "^8.5.0"
    },
    "dependencies": {
+      "@repo/shared": "workspace:*",
       "reflect-metadata": "^0.2.2",
       "rxjs": "^7.8.2"
    },

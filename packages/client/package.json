@@ -1,7 +1,6 @@
 {
-   "name": "client",
-   "version": "0.0.0",
-   "private": true,
+   "name": "@nestjs-rpc/client",
+   "version": "1.0.0",
    "main": "dist/cjs/index.js",
    "module": "dist/esm/index.js",
    "types": "dist/index.d.ts",
@@ -18,9 +17,11 @@
       "test": "echo 'Add test script here'",
       "lint": "echo 'Add lint script here'"
    },
+   "dependencies": {
+      "@repo/shared": "workspace:*"
+   },
    "devDependencies": {
       "@repo/eslint-config": "workspace:*",
-      "@repo/shared": "workspace:*",
       "@repo/typescript-config": "workspace:*",
       "tsup": "^8.5.0"
    }

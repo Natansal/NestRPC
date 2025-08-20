@@ -23,7 +23,7 @@ importers:
 
   example/client:
     dependencies:
-      client:
+      '@nestjs-rpc/client':
         specifier: workspace:*
         version: link:../../packages/client
       react:
@@ -69,6 +69,9 @@ importers:
 
   example/server:
     dependencies:
+      '@nestjs-rpc/server':
+        specifier: workspace:*
+        version: link:../../packages/server
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -84,9 +87,6 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
-      server:
-        specifier: workspace:*
-        version: link:../../packages/server
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
