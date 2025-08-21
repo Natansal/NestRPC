@@ -1,6 +1,6 @@
 {
    "name": "@nestjs-rpc/client",
-   "version": "1.0.4",
+   "version": "1.0.5",
    "keywords": [
       "nestjs",
       "nest",
@@ -38,12 +38,10 @@
       "test": "echo 'Add test script here'",
       "lint": "echo 'Add lint script here'"
    },
-   "dependencies": {
-      "@repo/shared": "workspace:*"
-   },
    "devDependencies": {
       "@repo/eslint-config": "workspace:*",
       "@repo/typescript-config": "workspace:*",
-      "tsup": "^8.5.0"
+      "tsup": "^8.5.0",
+      "@repo/shared": "workspace:*"
    }
 }
