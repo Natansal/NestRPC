@@ -77,7 +77,9 @@ export class BatchQueue {
          this.queue.pop();
 
          if (this.buildUrl([item]).length > this.config.maxUrlSize) {
-            throw new Error(`Single item too large for query`);
+            throw new Error(
+               `Single item too large for query. \n Item ${JSON.stringify(item)} \n Max URL size: ${this.config.maxUrlSize}`,
+            );
          }
 
          this.flush();

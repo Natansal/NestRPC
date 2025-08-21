@@ -1,6 +1,6 @@
-import { DynamicModule, Module, type Provider } from "@nestjs/common";
+import { DynamicModule, Logger, LoggerService, Module, type Provider } from "@nestjs/common";
 import { NestRPCService } from "./rpc.service";
-import { RPC_MODULE_OPTIONS } from "./constants";
+import { RPC_LOGGER, RPC_MODULE_OPTIONS } from "./constants";
 import { createDynamicController } from "./rpc.controller";
 import { NestRpcRouterConfig } from "@repo/shared";
 
@@ -29,6 +29,11 @@ export interface NestRPCModuleOptions {
     * 🗺️ Declarative router configuration (map of keys ➜ router classes or nested maps).
     */
    routes: NestRpcRouterConfig;
+   /**
+    * 📝 Logger service to use for logging.
+    * - Default: new Logger("NestjsRPC")
+    */
+   logger?: LoggerService;
 }
 
 @Module({})
@@ -40,17 +45,22 @@ export class NestRPCModule {
     * @returns A NestJS `DynamicModule` configured with the provided options.
     */
    static forRoot(options: NestRPCModuleOptions): DynamicModule {
-      const { global = false, apiPrefix = "/nestjs-rpc", routes } = options;
+      const { global = false, apiPrefix = "/nestjs-rpc", routes, logger = new Logger("NestjsRPC") } = options;
 
-      const mergedOptions: NestRPCModuleOptions = {
+      const mergedOptions: Required<NestRPCModuleOptions> = {
          global,
          apiPrefix,
          routes,
+         logger,
       };
 
       const DynamicController = createDynamicController({ apiPrefix, routes });
 
-      const providers: Provider[] = [NestRPCService, { provide: RPC_MODULE_OPTIONS, useValue: mergedOptions }];
+      const providers: Provider[] = [
+         NestRPCService,
+         { provide: RPC_MODULE_OPTIONS, useValue: mergedOptions },
+         { provide: RPC_LOGGER, useValue: logger },
+      ];
 
       const module: DynamicModule = {
          module: NestRPCModule,

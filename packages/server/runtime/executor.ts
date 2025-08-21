@@ -3,6 +3,7 @@ import { RPC_ARGS_COMPILER_METADATA, RPC_PARAM_RESOLVERS_METADATA } from "../con
 import { NestRpcExecutionContext } from "../nestjs-rpc-execution-context";
 import { ParamResolverFactory } from "../decorators/param.decorator";
 import { NestRPCService } from "../rpc.service";
+import { BadRequestException } from "@nestjs/common";
 
 export interface RpcCompiledArgs {
    buildArgs: (...args: Parameters<ParamResolverFactory>) => Promise<unknown[]> | unknown[];
@@ -81,7 +82,7 @@ export async function executeRpcMethod<TClass extends object, TResult = unknown>
 export function getRpcMethod<TClass extends object>(controllerInstance: TClass, methodName: keyof TClass) {
    const method: Function | undefined = (controllerInstance as any)[methodName];
    if (typeof method !== "function") {
-      throw new Error(`Method '${methodName.toString()}' not found on controller instance`);
+      throw new BadRequestException(`Method '${methodName.toString()}' not found on controller instance`);
    }
    return method;
 }

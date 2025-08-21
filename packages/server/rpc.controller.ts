@@ -3,44 +3,33 @@ import {
    Body,
    Controller,
    type ExecutionContext,
-   Get,
    HttpException,
    Inject,
+   LoggerService,
    NotFoundException,
-   Param,
    Post,
    Query,
-   Req,
-   UnauthorizedException,
 } from "@nestjs/common";
 import { ExecutionCtx } from "./decorators/execution-context.decorator";
 import { NestRPCService } from "./rpc.service";
 import { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
-import {
-   BatchCall,
-   BatchItem,
-   BatchQuery,
-   BatchResponse,
-   ClassType,
-   decodeBatchQuery,
-   encodeBatchQuery,
-   NestRpcRouterConfig,
-} from "@repo/shared";
+import { BatchCall, BatchItem, BatchResponse, ClassType, decodeBatchQuery, NestRpcRouterConfig } from "@repo/shared";
 import { isRoute, isRouter } from "./runtime";
 
 export interface DynamicControllerOptions {
    apiPrefix: string;
    routes: NestRpcRouterConfig;
+   logger: LoggerService;
 }
 
 /**
  * 🧩 Create a dynamic controller bound to the provided `apiPrefix`.
  *
- * @param options - ✅ Contains the `apiPrefix` to mount the controller under.
+ * @param options - ✅ Dynamic controller options.
  * @returns The dynamically created controller class.
  */
 export function createDynamicController(options: DynamicControllerOptions) {
-   const { apiPrefix } = options;
+   const { apiPrefix, logger } = options;
 
    @Controller(apiPrefix)
    class DynamicController {
@@ -55,18 +44,20 @@ export function createDynamicController(options: DynamicControllerOptions) {
          @Query("calls") rawCalls: string,
       ) {
          if (typeof body === "undefined") {
-            throw new Error("Received undefined body for rpc handler:( Please use a body parser");
+            throw new BadRequestException(
+               "RPC handler received empty or undefined body. Please ensure a valid body is sent.",
+            );
          }
 
          const calls = decodeBatchQuery(rawCalls);
 
          if (calls.length === 0) {
-            console.warn("Got empty batch request");
+            logger.warn("Got empty batch request");
             return [];
          }
 
          if (body.length !== calls.length) {
-            throw new Error("Body and routes length mismatch");
+            throw new BadRequestException("RPC handler received body and calls length mismatch");
          }
 
          const results: BatchResponse[] = [];
@@ -76,7 +67,9 @@ export function createDynamicController(options: DynamicControllerOptions) {
                const queryCall = calls.find((call) => call.id === bodyCall.id);
 
                if (!queryCall) {
-                  throw new Error(`queryCall with id ${bodyCall.id} not found`);
+                  throw new BadRequestException(
+                     `RPC handler did not receive a queryCall with id ${bodyCall.id} in the body.`,
+                  );
                }
 
                const call = {
@@ -85,6 +78,15 @@ export function createDynamicController(options: DynamicControllerOptions) {
                };
 
                const result = await this.handleRpcCall(call, nestExecutionContext);
+
+               if (result.response) {
+                  logger.log(`[RPC Request Success] route: "${call.path.join(".")}"`);
+               } else if (result.error) {
+                  logger.error(
+                     `[RPC Request Error] route: "${call.path.join(".")}", error: ${JSON.stringify(result.error)}`,
+                  );
+               }
+
                results[i] = result;
             }),
          );
@@ -152,7 +154,7 @@ export function createDynamicController(options: DynamicControllerOptions) {
          const methodName = path.pop();
 
          if (!methodName) {
-            throw new NotFoundException("No method name provided in path");
+            throw new NotFoundException("RPC handler did not receive a method name in the path.");
          }
 
          let pointer: any = options.routes;
@@ -163,19 +165,21 @@ export function createDynamicController(options: DynamicControllerOptions) {
             pointer = pointer[segment];
 
             if (!pointer) {
-               throw new NotFoundException(`Route segment '${segment}' not found`);
+               throw new NotFoundException(`RPC handler did not find a route segment '${segment}' in the path.`);
             }
          }
 
          // Second: validate we found a router
          if (!isRouter(pointer)) {
-            throw new NotFoundException("Final path segment is not a router");
+            throw new NotFoundException("RPC handler did not find a router in the path.");
          }
 
          // Third: validate the method exists and is decorated
          const method = pointer.prototype[methodName];
          if (!method || !isRoute(method)) {
-            throw new NotFoundException(`Method '${methodName}' not found or not decorated as route`);
+            throw new NotFoundException(
+               `RPC handler did not find a method '${methodName}' in the router or it is not decorated with @Route.`,
+            );
          }
 
          const result = {

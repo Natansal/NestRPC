@@ -45,7 +45,7 @@ export function createClientProxy(
       async apply(_, __, args: any[]) {
          // Guard: no method selected
          if (pathSegments.length === 0) {
-            throw new Error("No method selected. Access a method before calling, e.g., client.users.get(...)");
+            throw new Error("NOT A FUNCTION, Proxy tree access without method");
          }
          const result = await new Promise<BatchResponse>((resolve) => {
             batchQueue.add({
