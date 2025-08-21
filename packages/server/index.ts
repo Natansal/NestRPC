@@ -1,3 +1,4 @@
+import "reflect-metadata";
 export * from "./rpc.module";
 export * from "./types";
 export * from "./decorators";

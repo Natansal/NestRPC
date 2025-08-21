@@ -46,6 +46,13 @@ export function createRouterParamDecorator<T extends any[] = []>(factory: ParamR
          parameterIndex: number,
       ) {
          if (!propertyKey) return;
+
+         // Enforce reserved index 0 for the raw execution context
+         if (parameterIndex === 0) {
+            throw new Error(
+               `Parameter index 0 is reserved for the execution context and cannot be decorated. Remove the decorator from the first parameter. at: ${target.constructor.name}.${propertyKey.toString()}`,
+            );
+         }
          const method = Reflect.getOwnPropertyDescriptor(target, propertyKey)?.value ?? (target as any)[propertyKey];
          const existing: ParamResolverEntry[] = Reflect.getMetadata(RPC_PARAM_RESOLVERS_METADATA, method) ?? [];
 
