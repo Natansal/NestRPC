@@ -2,7 +2,7 @@ import type { RpcClientConfig } from "./types";
 import { BatchQueue } from "./batch-queue";
 import type { BatchResponse } from "@repo/shared";
 import { RpcError } from "./rpc-error";
-import { normalizeBaseUrl } from "./utils";
+import { removeLeadingSlash, removeTrailingSlash } from "./utils";
 
 /**
  * 🪄 Create a nested proxy that mirrors the server's router structure and batches calls.
@@ -26,7 +26,7 @@ export function createClientProxy(
    const batchQueue =
       sharedQueue ??
       new BatchQueue({
-         endpoint: `${normalizeBaseUrl(baseUrl)}/${apiPrefix}`,
+         endpoint: `${removeTrailingSlash(baseUrl)}/${removeLeadingSlash(apiPrefix)}`,
          fetchOptions,
          enabled: batchEnabled,
          ...batchConfig,
