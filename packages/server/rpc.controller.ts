@@ -111,6 +111,8 @@ export function createDynamicController(options: DynamicControllerOptions) {
       }
 
       handleRpcError(call: BatchItem, e: unknown): BatchResponse {
+         logger.error(`Error in RPC for call \`${call.path.join(".")}\`: ${JSON.stringify(e)}`);
+
          if (!(e instanceof Error)) {
             return {
                id: call.id,
