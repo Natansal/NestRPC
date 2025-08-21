@@ -11,15 +11,10 @@ import { NestRpcRouterConfig } from "@repo/shared";
  * are exposed.
  *
  * - Defaults:
- *   - `global` ➜ `false`
  *   - `apiPrefix` ➜ `"/nestjs-rpc"`
+ *   - `logger` ➜ `new Logger("NestjsRPC")`
  */
 export interface NestRPCModuleOptions {
-   /**
-    * 🌍 Register providers controller-wide as global Nest providers.
-    * - Default: `false`
-    */
-   global?: boolean;
    /**
     * 🛣️ Base path where the dynamic RPC controller is mounted.
     * - Default: `"/nestjs-rpc"`
@@ -45,16 +40,15 @@ export class NestRPCModule {
     * @returns A NestJS `DynamicModule` configured with the provided options.
     */
    static forRoot(options: NestRPCModuleOptions): DynamicModule {
-      const { global = false, apiPrefix = "/nestjs-rpc", routes, logger = new Logger("NestjsRPC") } = options;
+      const { apiPrefix = "/nestjs-rpc", routes, logger = new Logger("NestjsRPC") } = options;
 
       const mergedOptions: Required<NestRPCModuleOptions> = {
-         global,
          apiPrefix,
          routes,
          logger,
       };
 
-      const DynamicController = createDynamicController({ apiPrefix, routes });
+      const DynamicController = createDynamicController({ apiPrefix, routes, logger });
 
       const providers: Provider[] = [
          NestRPCService,
@@ -67,7 +61,7 @@ export class NestRPCModule {
          controllers: [DynamicController],
          providers,
          exports: providers,
-         global,
+         global: false,
       };
 
       return module;
