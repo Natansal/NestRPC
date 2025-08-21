@@ -1,3 +1,5 @@
+Type-safe RPC for NestJS — call Nest methods like local functions with zero boilerplate.
+
 ## @nestjs-rpc/server
 
 ### Installation
