@@ -27,7 +27,7 @@ export type InstanceMethods<T> = {
  * 🧠 Infer the client application type from a router configuration map.
  * Use this when creating a client proxy.
  */
-export type InferNestRpcRouterApp<T extends NestRpcRouterConfig> = {
+export type InferNestRpcRouterApp<T extends NestRpcRouterConfig = NestRpcRouterConfig> = {
    [K in keyof T]: T[K] extends Router ? InstanceMethods<InstanceType<T[K]>>
    : T[K] extends NestRpcRouterConfig ? InferNestRpcRouterApp<T[K]>
    : never;

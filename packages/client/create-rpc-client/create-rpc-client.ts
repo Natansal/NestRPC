@@ -1,4 +1,3 @@
-import type { InferNestRpcRouterApp, NestRpcRouterConfig } from "@repo/shared";
 import type { RpcClientConfig } from "./types";
 import { createClientProxy } from "./proxy";
 
@@ -39,7 +38,7 @@ import { createClientProxy } from "./proxy";
  * });
  * ```
  */
-export function createRpcClient<T extends InferNestRpcRouterApp<NestRpcRouterConfig>>(config: RpcClientConfig): T {
+export function createRpcClient<T>(config: RpcClientConfig): T {
    const normalized: Required<RpcClientConfig> = {
       baseUrl: config.baseUrl,
       apiPrefix: config.apiPrefix ?? "/nestjs-rpc",

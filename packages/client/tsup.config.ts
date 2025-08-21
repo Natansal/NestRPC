@@ -25,7 +25,7 @@ export default defineConfig([
    {
       entry: ["index.ts"],
       format: ["cjs"],
-      dts: { only: true },
+      dts: { only: true, resolve: true },
       sourcemap: false,
       clean: false,
       target: "es2022",
