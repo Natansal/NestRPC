@@ -8,7 +8,9 @@
       "format": "prettier --write \"**/*.{ts,tsx,md}\"",
       "check-types": "turbo run check-types",
       "version:patch": "cd packages/server && pnpm version patch && cd ../.. && cd packages/client && pnpm version patch && cd ../..",
-      "publish": "pnpm --dir packages/client publish && pnpm --dir packages/server publish"
+      "version:minor": "cd packages/server && pnpm version minor && cd ../.. && cd packages/client && pnpm version minor && cd ../..",
+      "version:major": "cd packages/server && pnpm version major && cd ../.. && cd packages/client && pnpm version major && cd ../..",
+      "publish": "cd packages/server && pnpm publish --access public && cd ../.. && cd packages/client && pnpm publish --access public && cd ../.."
    },
    "devDependencies": {
       "@types/node": "^20",
