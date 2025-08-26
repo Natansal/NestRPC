@@ -1,4 +1,4 @@
-import { DynamicModule, Logger, LoggerService, Module, type Provider } from "@nestjs/common";
+import { DynamicModule, Logger, LoggerService, Module, UseGuards, type Provider } from "@nestjs/common";
 import { NestRPCService } from "./rpc.service";
 import { RPC_LOGGER, RPC_MODULE_OPTIONS } from "./constants";
 import { createDynamicController } from "./rpc.controller";

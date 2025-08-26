@@ -1,9 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { executeRpcMethod, getRpcMethodArguments } from "./runtime/executor";
 import type { NestRpcExecutionContext } from "./nestjs-rpc-execution-context";
 import { ClassType } from "@repo/shared";
 import { ModuleRef } from "@nestjs/core";
 import { ParamResolverFactory } from "./decorators/param.decorator";
+import { CanActivate } from "./types";
+import { RPC_GUARDS_METADATA } from "./constants";
 
 @Injectable()
 export class NestRPCService {
@@ -46,5 +48,25 @@ export class NestRPCService {
       context: NestRpcExecutionContext,
    ) {
       return await getRpcMethodArguments(this.getRouterInstance(controllerClass), methodName, context);
+   }
+
+   async runGuards<TClass extends object>(
+      controllerClass: ClassType<TClass>,
+      methodName: keyof TClass,
+      context: NestRpcExecutionContext,
+   ) {
+      // Merge method-level + class-level guards
+      const guards: CanActivate[] = [
+         ...(Reflect.getMetadata(RPC_GUARDS_METADATA, controllerClass.prototype, methodName.toString()) ?? []),
+         ...(Reflect.getMetadata(RPC_GUARDS_METADATA, controllerClass) ?? []),
+      ];
+
+      for (const guard of guards) {
+         const instance: CanActivate =
+            typeof guard === "function" ? this.moduleRef.get(guard, { strict: false }) : guard;
+
+         const ok = await instance.canActivate(context);
+         if (!ok) throw new ForbiddenException();
+      }
    }
 }

@@ -195,7 +195,7 @@ export function createDynamicController(options: DynamicControllerOptions) {
       }
 
       async runRoute(ctx: NestRpcExecutionContext, router: ClassType<any>, methodName: string) {
-         // TODO: implement guard checks here
+         await this.rpcService.runGuards(router, methodName, ctx);
          const result = await this.rpcService.execute(router, methodName, ctx);
          return result;
       }

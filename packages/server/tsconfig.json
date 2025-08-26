@@ -8,6 +8,6 @@
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true
    },
-   "include": ["**/*.ts"],
+   "include": ["**/*.ts", "decorators/use-guards..decoratorts"],
    "exclude": ["node_modules", "dist"]
 }
