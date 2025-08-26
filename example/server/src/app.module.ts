@@ -12,7 +12,7 @@ import { UserModule } from './user/user.module';
     }),
     UserModule,
   ],
-  controllers: [],
-  providers: [AppRouter],
+  controllers: [AppRouter],
+  providers: [],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { rpcRepo } from "./rpc-repo";
 import "./App.css";
 
@@ -31,8 +31,6 @@ export default function App() {
    const [lookupId, setLookupId] = useState("");
    const [lookupUser, setLookupUser] = useState<User | null>(null);
 
-   const client = useMemo(() => rpcRepo, []);
-
    // Wrap window.fetch to count RPC requests made by the client during the demo
    useEffect(() => {
       const originalFetch = window.fetch.bind(window);
@@ -58,15 +56,11 @@ export default function App() {
       };
    }, []);
 
-   useEffect(() => {
-      void refreshUsers();
-   }, []);
-
    async function refreshUsers() {
       setUsersLoading(true);
       setUsersError("");
       try {
-         const list = await client.user.queries.listUsers();
+         const list = await rpcRepo.user.queries.listUsers();
          setUsers(list);
       } catch (err) {
          setUsersError(err instanceof Error ? err.message : "Unknown error occurred");
@@ -81,7 +75,7 @@ export default function App() {
       setBatchingResult({ 1: "", 2: "", 3: "" });
       setLastRequest(null);
       try {
-         const appRouter = client.app;
+         const appRouter = rpcRepo.app;
          const responses = await Promise.all([appRouter.batch1(1), appRouter.batch2(2), appRouter.batch3(3)]);
          setBatchingResult({
             1: responses[0],
@@ -99,7 +93,7 @@ export default function App() {
       if (!createName.trim() || !createEmail.trim()) return;
       setBusyId("create");
       try {
-         await client.user.mutations.createUser({ name: createName.trim(), email: createEmail.trim() });
+         await rpcRepo.user.mutations.createUser({ name: createName.trim(), email: createEmail.trim() });
          setCreateName("");
          setCreateEmail("");
          await refreshUsers();
@@ -111,7 +105,7 @@ export default function App() {
    async function deleteUser(id: string) {
       setBusyId(id);
       try {
-         await client.user.mutations.deleteUser({ id });
+         await rpcRepo.user.mutations.deleteUser({ id });
          await refreshUsers();
       } finally {
          setBusyId("");
@@ -121,7 +115,7 @@ export default function App() {
    async function updateUser(id: string, input: { name?: string; email?: string }) {
       setBusyId(id);
       try {
-         await client.user.mutations.updateUser({ id, ...input });
+         await rpcRepo.user.mutations.updateUser({ id, ...input });
          await refreshUsers();
       } finally {
          setBusyId("");
@@ -132,7 +126,7 @@ export default function App() {
       if (!lookupId.trim()) return;
       setBusyId("lookup");
       try {
-         const u = await client.user.queries.getUser({ id: lookupId.trim() });
+         const u = await rpcRepo.user.queries.getUser({ id: lookupId.trim() });
          setLookupUser(u);
       } finally {
          setBusyId("");

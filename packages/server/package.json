@@ -47,15 +47,15 @@
       "@nestjs/core": "^11.1.6",
       "@nestjs/platform-express": "^11.1.6",
       "@repo/eslint-config": "workspace:*",
+      "@repo/shared": "workspace:*",
       "@repo/typescript-config": "workspace:*",
-      "tsup": "^8.5.0",
-      "@repo/shared": "workspace:*"
+      "tsup": "^8.5.0"
    },
    "dependencies": {
-      "reflect-metadata": "^0.2.2",
-      "rxjs": "^7.8.2"
+      "reflect-metadata": "^0.2.2"
    },
    "peerDependencies": {
+      "axios": "^1.11.0",
       "@nestjs/common": "^11.1.6",
       "@nestjs/core": "^11.1.6",
       "@nestjs/platform-express": "^11.1.6"

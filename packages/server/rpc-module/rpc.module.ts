@@ -1,8 +1,9 @@
-import { DynamicModule, Logger, LoggerService, Module, UseGuards, type Provider } from "@nestjs/common";
-import { NestRPCService } from "./rpc.service";
-import { RPC_LOGGER, RPC_MODULE_OPTIONS } from "./constants";
+import { DynamicModule, ExecutionContext, Logger, LoggerService, Module, type Provider } from "@nestjs/common";
 import { createDynamicController } from "./rpc.controller";
 import { NestRpcRouterConfig } from "@repo/shared";
+import { AsyncLocalStorage } from "async_hooks";
+import { RpcInterceptor } from "./rpc.interceptor";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 /**
  * 🧰 Options for configuring `NestRPCModule`
@@ -31,6 +32,8 @@ export interface NestRPCModuleOptions {
    logger?: LoggerService;
 }
 
+export const asyncStorage = new AsyncLocalStorage<{ executionContext: ExecutionContext }>();
+
 @Module({})
 export class NestRPCModule {
    /**
@@ -42,25 +45,20 @@ export class NestRPCModule {
    static forRoot(options: NestRPCModuleOptions): DynamicModule {
       const { apiPrefix = "/nestjs-rpc", routes, logger = new Logger("NestjsRPC") } = options;
 
-      const mergedOptions: Required<NestRPCModuleOptions> = {
+      const DynamicController = createDynamicController({
          apiPrefix,
-         routes,
          logger,
-      };
-
-      const DynamicController = createDynamicController({ apiPrefix, routes, logger });
-
-      const providers: Provider[] = [
-         NestRPCService,
-         { provide: RPC_MODULE_OPTIONS, useValue: mergedOptions },
-         { provide: RPC_LOGGER, useValue: logger },
-      ];
-
+         routes,
+      });
       const module: DynamicModule = {
          module: NestRPCModule,
          controllers: [DynamicController],
-         providers,
-         exports: providers,
+         providers: [
+            {
+               provide: APP_INTERCEPTOR,
+               useClass: RpcInterceptor,
+            },
+         ],
          global: false,
       };
 

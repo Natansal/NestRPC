@@ -4,6 +4,7 @@ import { UserQueriesRouter } from './user.queries.router';
 
 @Module({
   exports: [],
-  providers: [UserQueriesRouter, UserMutationsRouter],
+  controllers: [UserQueriesRouter, UserMutationsRouter],
+  providers: [],
 })
 export class UserModule {}
