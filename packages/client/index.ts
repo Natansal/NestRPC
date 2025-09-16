@@ -1,2 +1,3 @@
-export * from "./create-rpc-client";
-export type { ClassType, NestRpcRouterConfig, InstanceMethods, InferNestRpcRouterApp } from "@repo/shared";
+export type { ClassType, RpcRouterManifest } from "@repo/shared";
+export * from "./rpc-client";
+export type * from "./types";

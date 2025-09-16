@@ -7,19 +7,11 @@ type User = { id: string; name: string; email: string };
 /**
  * ✨ Beautiful demo app showcasing the RPC client against the example server.
  *
- * - 🖐️ Batch playground calling `app.batch1`, `app.batch2`, `app.batch3`
  * - 👥 Users CRUD calling `user.queries` and `user.mutations`
  *
  * @returns 🧩 A styled React component demonstrating type‑safe RPC calls.
  */
 export default function App() {
-   const [batchingResult, setBatchingResult] = useState<Record<"1" | "2" | "3", string>>({ 1: "", 2: "", 3: "" });
-   const [batchingLoading, setBatchingLoading] = useState(false);
-   const [batchingError, setBatchingError] = useState<string>("");
-   // Network instrumentation for demoing batching
-   const [requestCount, setRequestCount] = useState(0);
-   const [lastRequest, setLastRequest] = useState<{ url: string; body?: string } | null>(null);
-
    const [users, setUsers] = useState<User[]>([]);
    const [usersLoading, setUsersLoading] = useState(false);
    const [usersError, setUsersError] = useState<string>("");
@@ -31,36 +23,13 @@ export default function App() {
    const [lookupId, setLookupId] = useState("");
    const [lookupUser, setLookupUser] = useState<User | null>(null);
 
-   // Wrap window.fetch to count RPC requests made by the client during the demo
-   useEffect(() => {
-      const originalFetch = window.fetch.bind(window);
-      window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-         try {
-            const urlStr =
-               typeof input === "string" ? input
-               : input instanceof URL ? input.toString()
-               : (input as Request).url;
-            const method =
-               init?.method ??
-               (typeof input === "object" && "method" in (input as any) ? (input as Request).method : "GET");
-            if (urlStr.includes("/api") && method.toUpperCase() === "POST") {
-               setRequestCount((c) => c + 1);
-               const body = typeof init?.body === "string" ? init?.body : undefined;
-               setLastRequest({ url: urlStr, body });
-            }
-         } catch {}
-         return originalFetch(input as any, init as any);
-      }) as any;
-      return () => {
-         window.fetch = originalFetch as any;
-      };
-   }, []);
+   // (Batching removed) Network instrumentation no longer needed
 
    async function refreshUsers() {
       setUsersLoading(true);
       setUsersError("");
       try {
-         const list = await rpcRepo.user.queries.listUsers();
+         const { data: list } = await rpcRepo.user.queries.listUsers();
          setUsers(list);
       } catch (err) {
          setUsersError(err instanceof Error ? err.message : "Unknown error occurred");
@@ -69,25 +38,7 @@ export default function App() {
       }
    }
 
-   async function callBatch() {
-      setBatchingLoading(true);
-      setBatchingError("");
-      setBatchingResult({ 1: "", 2: "", 3: "" });
-      setLastRequest(null);
-      try {
-         const appRouter = rpcRepo.app;
-         const responses = await Promise.all([appRouter.batch1(1), appRouter.batch2(2), appRouter.batch3(3)]);
-         setBatchingResult({
-            1: responses[0],
-            2: responses[1],
-            3: responses[2],
-         });
-      } catch (err) {
-         setBatchingError(err instanceof Error ? err.message : String(err));
-      } finally {
-         setBatchingLoading(false);
-      }
-   }
+   // (Batching removed) callBatch no longer exists
 
    async function createUser() {
       if (!createName.trim() || !createEmail.trim()) return;
@@ -126,7 +77,7 @@ export default function App() {
       if (!lookupId.trim()) return;
       setBusyId("lookup");
       try {
-         const u = await rpcRepo.user.queries.getUser({ id: lookupId.trim() });
+         const { data: u } = await rpcRepo.user.queries.getUser({ id: lookupId.trim() });
          setLookupUser(u);
       } finally {
          setBusyId("");
@@ -146,73 +97,6 @@ export default function App() {
          </header>
 
          <main className="grid">
-            <section className="card">
-               <h2>🖐️ Batch Playground</h2>
-               <p className="muted">
-                  Calls three separate endpoints: <code>app.batch1</code>, <code>app.batch2</code>,{" "}
-                  <code>app.batch3</code>. With batching enabled, they are sent as a single HTTP request.
-               </p>
-               <div className="row">
-                  <button
-                     className="button primary"
-                     onClick={callBatch}
-                     disabled={batchingLoading}
-                  >
-                     {batchingLoading ? "Calling…" : "Send"}
-                  </button>
-               </div>
-               {batchingResult && <div className="result success">{JSON.stringify(batchingResult)}</div>}
-               {batchingError && <div className="result error">{batchingError}</div>}
-               <div className="divider" />
-               <h3>🔬 What actually hit the network?</h3>
-               <div
-                  className="row"
-                  style={{ alignItems: "center", gap: 12 }}
-               >
-                  <div className="result info compact">
-                     Requests sent: <strong>{requestCount}</strong>
-                  </div>
-                  <button
-                     className="button ghost"
-                     onClick={() => {
-                        setRequestCount(0);
-                        setLastRequest(null);
-                     }}
-                  >
-                     Reset counter
-                  </button>
-               </div>
-               {lastRequest && (
-                  <div
-                     className="result info"
-                     style={{ marginTop: 12 }}
-                  >
-                     <div style={{ wordBreak: "break-all" }}>
-                        <strong>URL</strong>: {lastRequest.url}
-                     </div>
-                     {(() => {
-                        try {
-                           const callsParam = new URL(lastRequest.url).searchParams.get("calls");
-                           if (!callsParam) return null;
-                           const decoded = decodeURIComponent(callsParam);
-                           return (
-                              <div style={{ marginTop: 6 }}>
-                                 <strong>calls</strong>: {decoded}
-                              </div>
-                           );
-                        } catch {
-                           return null;
-                        }
-                     })()}
-                     {lastRequest.body && (
-                        <div style={{ marginTop: 6, wordBreak: "break-all" }}>
-                           <strong>body</strong>: {lastRequest.body}
-                        </div>
-                     )}
-                  </div>
-               )}
-            </section>
-
             <section className="card">
                <h2>👥 Users</h2>
                <p className="muted">

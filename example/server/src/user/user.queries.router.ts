@@ -25,5 +25,3 @@ export class UserQueriesRouter {
     return fetchAllUsers();
   }
 }
-
-

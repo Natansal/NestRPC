@@ -1,9 +1,9 @@
-import { defineAppRouter, type InferNestRpcRouterApp } from 'server';
+import { defineManifest } from 'server';
 import { AppRouter } from './app.router';
 import { UserMutationsRouter } from './user/user.mutations.router';
 import { UserQueriesRouter } from './user/user.queries.router';
 
-export const config = defineAppRouter({
+export const config = defineManifest({
   app: AppRouter,
   user: {
     mutations: UserMutationsRouter,
@@ -11,4 +11,4 @@ export const config = defineAppRouter({
   },
 });
 
-export type RpcApp = InferNestRpcRouterApp<typeof config>;
+export type RpcApp = typeof config;
