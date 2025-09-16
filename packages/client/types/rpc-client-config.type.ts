@@ -8,7 +8,7 @@ export interface RpcClientConfig {
    /**
     * 🛣️ API prefix under which the RPC controller is mounted.
     *
-    * - Default: "/nestjs-rpc"
+    * - Default (when not provided to the client): "nestjs-rpc"
     */
    apiPrefix?: string;
    /**

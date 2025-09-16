@@ -3,13 +3,40 @@ import merge from "lodash.merge";
 import { InferNestRpcRouterApp, RpcClientConfig, RpcMethodOptions } from "./types";
 import axios from "axios";
 
+/**
+ * 🔗 RpcClient
+ *
+ * Type-safe client for calling your Nest RPC routes generated from a
+ * `RpcRouterManifest`. Provides a fluent, proxy-based API to traverse routers
+ * and invoke methods with inferred request/response types.
+ *
+ * @typeParam T - 🧭 The manifest type used to infer the client surface.
+ */
 export class RpcClient<T extends RpcRouterManifest> {
    private config!: Required<Omit<RpcClientConfig, "baseUrl">> & Pick<RpcClientConfig, "baseUrl">;
 
+   /**
+    * 🏗️ Construct a new client.
+    *
+    * @param config - ⚙️ Client configuration.
+    * - `apiPrefix` default: "nestjs-rpc"
+    * - `requestOptions` default: `{}`
+    * - `axiosInstance` default: `axios`
+    * - `baseUrl` default: `undefined` (you should provide it)
+    */
    constructor(config: RpcClientConfig) {
       this.$setConfig(config);
    }
 
+   /**
+    * ⚙️ Set or replace the client configuration.
+    *
+    * - Trims leading/trailing slashes from `apiPrefix` and `baseUrl`.
+    * - Fills in defaults for missing values.
+    *
+    * @param config - 🧩 Partial or full configuration to apply.
+    * @returns void - ✅ Updates internal config.
+    */
    $setConfig(config: RpcClientConfig) {
       let { apiPrefix = "nestjs-rpc", requestOptions = {}, axiosInstance = axios, baseUrl } = config;
 
@@ -21,18 +48,44 @@ export class RpcClient<T extends RpcRouterManifest> {
       this.config = { apiPrefix, requestOptions, axiosInstance, baseUrl };
    }
 
+   /**
+    * 🧮 Update a single configuration property.
+    *
+    * @param key - 🔑 One of the keys of `RpcClientConfig`.
+    * @param value - 🧱 New value for the given key.
+    * @returns void - ✅ Applies the update and recomputes normalized config.
+    */
    $setConfigProperty<T extends keyof Required<RpcClientConfig>>(key: T, value: Required<RpcClientConfig>[T]) {
       this.$setConfig({ ...this.config, [key]: value });
    }
 
+   /**
+    * 📦 Current normalized configuration.
+    *
+    * - `apiPrefix`: string (no leading/trailing slashes)
+    * - `baseUrl`: string | undefined (no leading/trailing slashes)
+    * - `requestOptions`: AxiosRequestConfig
+    * - `axiosInstance`: AxiosInstance
+    */
    get $config(): Readonly<typeof this.config> {
       return this.config;
    }
 
+   /**
+    * 🧭 Get a specific router proxy by key.
+    *
+    * @param router - 🏷️ Router key from your manifest.
+    * @returns A proxy exposing the methods of the router with typed calls.
+    */
    route<K extends keyof InferNestRpcRouterApp<T>>(router: K): InferNestRpcRouterApp<T>[K] {
       return this.routers()[router];
    }
 
+   /**
+    * 🌳 Get the root proxy for navigating routers and calling methods.
+    *
+    * @returns A nested proxy matching the structure of your manifest.
+    */
    routers() {
       const that = this;
       function buildProxy(path: string[] = []) {
