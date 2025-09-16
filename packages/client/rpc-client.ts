@@ -1,4 +1,5 @@
 import { RpcRouterManifest } from "@repo/shared";
+import merge from "lodash.merge";
 import { InferNestRpcRouterApp, RpcClientConfig, RpcMethodOptions } from "./types";
 import axios from "axios";
 
@@ -62,10 +63,7 @@ export class RpcClient<T extends RpcRouterManifest> {
       return await (options?.axiosInstance ?? this.config.axiosInstance).post(
          `${this.$config.baseUrl}/${this.$config.apiPrefix}/${path.join("/")}`,
          { param: body },
-         {
-            ...this.$config.requestOptions,
-            ...(options?.requestOptions ?? {}),
-         },
+         merge({}, this.$config.requestOptions, options?.requestOptions ?? {}),
       );
    }
 }

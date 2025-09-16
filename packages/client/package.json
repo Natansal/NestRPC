@@ -42,9 +42,13 @@
       "@repo/eslint-config": "workspace:*",
       "@repo/shared": "workspace:*",
       "@repo/typescript-config": "workspace:*",
+      "@types/lodash.merge": "^4.6.9",
       "tsup": "^8.5.0"
    },
    "peerDependencies": {
       "axios": "^1.12.2"
+   },
+   "dependencies": {
+      "lodash.merge": "^4.6.2"
    }
 }
