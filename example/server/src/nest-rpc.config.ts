@@ -3,7 +3,7 @@ import { AppRouter } from './app.router';
 import { UserMutationsRouter } from './user/user.mutations.router';
 import { UserQueriesRouter } from './user/user.queries.router';
 
-export const config = defineManifest({
+export const manifest = defineManifest({
   app: AppRouter,
   user: {
     mutations: UserMutationsRouter,
@@ -11,4 +11,4 @@ export const config = defineManifest({
   },
 });
 
-export type RpcApp = typeof config;
+export type Manifest = typeof manifest;

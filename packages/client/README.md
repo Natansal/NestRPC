@@ -5,12 +5,14 @@ Type-safe RPC for NestJS — call Nest methods like local functions with zero bo
 ### Installation
 
 ```bash
-npm install @nestjs-rpc/client
+npm install @nestjs-rpc/client axios
 # or
-pnpm add @nestjs-rpc/client
+pnpm add @nestjs-rpc/client axios
 # or
-yarn add @nestjs-rpc/client
+yarn add @nestjs-rpc/client axios
 ```
+
+Note: `axios` is a peer dependency used as the default HTTP client. You can supply your own Axios instance via `axiosInstance` if needed.
 
 ### Go to the docs
 

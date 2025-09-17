@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { nestRpcInit } from '@nestjs-rpc/server';
-import { config } from './nest-rpc.config';
+import { manifest } from './nest-rpc.config';
 
 const PORT = 3000;
 
 async function bootstrap() {
-  nestRpcInit(config);
+  nestRpcInit(manifest);
 
   const app = await NestFactory.create(AppModule, {
     bodyParser: true,

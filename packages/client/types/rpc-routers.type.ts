@@ -12,11 +12,9 @@ import { AxiosResponse } from "axios";
  */
 export type InstanceMethods<T> = {
    [K in keyof T as T[K] extends (...args: any) => any ? K : never]: T[K] extends (...args: infer A) => infer R ?
-      undefined extends A[0] ?
-         (body?: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>, A[0] | undefined, {}>>
-      : [A[0]] extends [never] ?
-         (body?: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>, A[0] | undefined, {}>>
-      :  (body: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>, A[0], {}>>
+      undefined extends A[0] ? (body?: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>>>
+      : [A[0]] extends [never] ? (body?: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>>>
+      : (body: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>>>
    :  never;
 };
 
