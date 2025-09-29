@@ -16,7 +16,7 @@ export type InstanceMethods<T> = {
       : [A[0]] extends [never] ? (body?: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>>>
       : (body: A[0], options?: RpcMethodOptions) => Promise<AxiosResponse<Awaited<R>>>
    :  never;
-};p
+};
 
 /**
  * 🧠 Infer the client application type from a router configuration map.
