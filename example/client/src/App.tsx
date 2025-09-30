@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { rpcRepo } from "./rpc-repo";
+import { userRepo } from "./rpc-repo";
 import "./App.css";
 
 type User = { id: string; name: string; email: string };
@@ -29,7 +29,7 @@ export default function App() {
       setUsersLoading(true);
       setUsersError("");
       try {
-         const { data: list } = await rpcRepo.user.queries.listUsers();
+         const { data: list } = await userRepo.queries.listUsers();
          setUsers(list);
       } catch (err) {
          setUsersError(err instanceof Error ? err.message : "Unknown error occurred");
@@ -44,7 +44,7 @@ export default function App() {
       if (!createName.trim() || !createEmail.trim()) return;
       setBusyId("create");
       try {
-         await rpcRepo.user.mutations.createUser({ name: createName.trim(), email: createEmail.trim() });
+         await userRepo.mutations.createUser({ name: createName.trim(), email: createEmail.trim() });
          setCreateName("");
          setCreateEmail("");
          await refreshUsers();
@@ -56,7 +56,7 @@ export default function App() {
    async function deleteUser(id: string) {
       setBusyId(id);
       try {
-         await rpcRepo.user.mutations.deleteUser({ id });
+         await userRepo.mutations.deleteUser({ id });
          await refreshUsers();
       } finally {
          setBusyId("");
@@ -66,7 +66,7 @@ export default function App() {
    async function updateUser(id: string, input: { name?: string; email?: string }) {
       setBusyId(id);
       try {
-         await rpcRepo.user.mutations.updateUser({ id, ...input });
+         await userRepo.mutations.updateUser({ id, ...input });
          await refreshUsers();
       } finally {
          setBusyId("");
@@ -77,7 +77,7 @@ export default function App() {
       if (!lookupId.trim()) return;
       setBusyId("lookup");
       try {
-         const { data: u } = await rpcRepo.user.queries.getUser({ id: lookupId.trim() });
+         const { data: u } = await userRepo.queries.getUser({ id: lookupId.trim() });
          setLookupUser(u);
       } finally {
          setBusyId("");
