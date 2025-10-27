@@ -113,10 +113,12 @@ export class RpcClient<T extends RpcRouterManifest> {
    }
 
    private async handleRequest(path: string[], body: any, options?: RpcMethodOptions) {
-      return await (options?.axiosInstance ?? this.config.axiosInstance).post(
-         `${this.$config.baseUrl}/${this.$config.apiPrefix}/${path.join("/")}`,
-         { param: body },
-         merge({}, this.$config.requestOptions, options?.requestOptions ?? {}),
-      );
+      return (
+         await (options?.axiosInstance ?? this.config.axiosInstance).post(
+            `${this.$config.baseUrl}/${this.$config.apiPrefix}/${path.join("/")}`,
+            { param: body },
+            merge({}, this.$config.requestOptions, options?.requestOptions ?? {}),
+         )
+      ).data;
    }
 }
