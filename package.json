@@ -10,7 +10,7 @@
       "version:patch": "cd packages/server && pnpm version patch && cd ../.. && cd packages/client && pnpm version patch && cd ../..",
       "version:minor": "cd packages/server && pnpm version minor && cd ../.. && cd packages/client && pnpm version minor && cd ../..",
       "version:major": "cd packages/server && pnpm version major && cd ../.. && cd packages/client && pnpm version major && cd ../..",
-      "publish": "cd packages/server && pnpm publish --access public && cd ../.. && cd packages/client && pnpm publish --access public && cd ../.."
+      "publish": "export NPM_CONFIG_USERCONFIG=.npmrc && cd packages/server && pnpm publish --access public && cd ../.. && cd packages/client && pnpm publish --access public && cd ../.."
    },
    "devDependencies": {
       "@types/node": "^20",
