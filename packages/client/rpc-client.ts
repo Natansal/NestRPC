@@ -113,12 +113,31 @@ export class RpcClient<T extends RpcRouterManifest> {
    }
 
    private async handleRequest(path: string[], body: any, options?: RpcMethodOptions) {
-      return (
-         await (options?.axiosInstance ?? this.config.axiosInstance).post(
-            `${this.$config.baseUrl}/${this.$config.apiPrefix}/${path.join("/")}`,
-            { param: body },
-            merge({}, this.$config.requestOptions, options?.requestOptions ?? {}),
-         )
-      ).data;
+      return await (options?.axiosInstance ?? this.config.axiosInstance).post(
+         `${this.$config.baseUrl}/${this.$config.apiPrefix}/${path.join("/")}`,
+         this.buildBody(body, options),
+         merge(
+            { headers: { "Content-Type": "multipart/form-data" } },
+            this.$config.requestOptions,
+            options?.requestOptions ?? {},
+         ),
+      );
+   }
+
+   private buildBody(body: any, options?: RpcMethodOptions) {
+      const formData = new FormData();
+      const stringifiedBody = JSON.stringify(body);
+
+      formData.append("param", stringifiedBody);
+
+      if (options?.file) {
+         formData.append("file", options.file);
+      }
+
+      if (options?.files) {
+         options.files.forEach((file) => formData.append("files", file));
+      }
+
+      return formData;
    }
 }

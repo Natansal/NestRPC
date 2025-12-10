@@ -11,4 +11,7 @@ import { RpcClientConfig } from "./rpc-client-config.type";
  * - `requestOptions`: ✉️ Merge additional Axios request options (headers, signal, etc.).
  *   - Default: merges into `RpcClient.$config.requestOptions` (default `{}`).
  */
-export interface RpcMethodOptions extends Pick<RpcClientConfig, "axiosInstance" | "requestOptions"> {}
+export interface RpcMethodOptions extends Pick<RpcClientConfig, "axiosInstance" | "requestOptions"> {
+   file?: File;
+   files?: File[];
+}

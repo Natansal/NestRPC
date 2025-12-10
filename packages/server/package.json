@@ -1,6 +1,6 @@
 {
    "name": "@nestjs-rpc/server",
-   "version": "2.0.4",
+   "version": "2.1.0",
    "keywords": [
       "nestjs",
       "nest",
@@ -38,23 +38,21 @@
    },
    "scripts": {
       "dev": "tsup --watch",
-      "build": "tsup",
-      "test": "echo 'Add test script here'",
-      "lint": "echo 'Add lint script here'"
+      "build": "tsup"
    },
    "devDependencies": {
-      "@nestjs/common": "^11.1.6",
-      "@nestjs/core": "^11.1.6",
-      "@nestjs/platform-express": "^11.1.6",
       "@repo/eslint-config": "workspace:*",
       "@repo/shared": "workspace:*",
       "@repo/typescript-config": "workspace:*",
+      "@types/multer": "^2.0.0",
       "tsup": "^8.5.0"
    },
    "dependencies": {
       "reflect-metadata": "^0.2.2"
    },
    "peerDependencies": {
+      "multer": "^2.0.2",
+      "@nestjs/platform-express": "^11.1.6",
       "@nestjs/common": "^11.1.6",
       "@nestjs/core": "^11.1.6"
    }

@@ -1,6 +1,10 @@
 import { ClassType, RpcRouterManifest } from "@repo/shared";
 import { ROUTE_METADATA, ROUTER_METADATA } from "../reflect-keys.constant";
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UploadedFile, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import type { RouteConfig } from "../decorators";
+import { FileInterceptor, FilesInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
+import { FormDataParamPipe } from "../pipes";
+import { ROUTE_ARGS_METADATA } from "@nestjs/common/constants";
 
 /**
  * 🧵 applyForRouters
@@ -57,8 +61,8 @@ export function applyForRouters(prefix: string, manifest: RpcRouterManifest) {
             if (methods.has(name)) continue; // closest-to-child prototype wins
             const descriptor = Object.getOwnPropertyDescriptor(currentProto, name);
             if (!descriptor || typeof descriptor.value !== "function") continue; // skip accessors and non-functions
-            const hasRoute = Reflect.getMetadata(ROUTE_METADATA, currentProto, name);
-            if (hasRoute) {
+            const isRoute = Reflect.getMetadata(ROUTE_METADATA, currentProto, name);
+            if (isRoute) {
                methods.set(name, currentProto.constructor as ClassType<any>);
                if (outDescriptors) outDescriptors.set(name, descriptor);
             }
@@ -115,11 +119,44 @@ export function applyForRouters(prefix: string, manifest: RpcRouterManifest) {
    for (const [router, methodsMap] of map) {
       Controller(prefix)(router);
       for (const [methodName, paths] of methodsMap) {
-         // Use the descriptor captured during prototype traversal to apply the route decorator
+         const routeMetadata = Reflect.getMetadata(
+            ROUTE_METADATA,
+            router.prototype,
+            methodName,
+         ) as Partial<RouteConfig>;
+
          const descriptor = descriptors.get(router)?.get(methodName)!;
+
+         // --- file support ---
+         routeMetadata.file ??= "none";
+         const mode = typeof routeMetadata.file === "string" ? routeMetadata.file : routeMetadata.file.mode;
+         const options = typeof routeMetadata.file === "string" ? undefined : routeMetadata.file.options;
+         const maxCount = typeof routeMetadata.file === "string" ? undefined : routeMetadata.file.maxCount;
+
+         switch (mode) {
+            case "single":
+               UseInterceptors(FileInterceptor("file", options))(router.prototype, methodName, descriptor);
+               if (!isIndexOccupied(router.prototype, methodName, 1)) UploadedFile()(router.prototype, methodName, 1);
+               break;
+            case "multiple":
+               UseInterceptors(FilesInterceptor("files", maxCount, options))(router.prototype, methodName, descriptor);
+               if (!isIndexOccupied(router.prototype, methodName, 1)) UploadedFiles()(router.prototype, methodName, 1);
+               break;
+            default:
+               UseInterceptors(NoFilesInterceptor(options))(router.prototype, methodName, descriptor);
+               break;
+         }
+
+         // Use the descriptor captured during prototype traversal to apply the route decorator
          Post(paths)(router.prototype, methodName, descriptor);
          // Inject first param as the RPC body payload
-         Body("param")(router.prototype, methodName, 0);
+         if (!isIndexOccupied(router.prototype, methodName, 0))
+            Body(FormDataParamPipe)(router.prototype, methodName, 0);
       }
    }
+}
+
+function isIndexOccupied(target: any, methodName: string, index: number) {
+   const existing = Reflect.getMetadata(ROUTE_ARGS_METADATA, target[methodName]);
+   return existing ? Object.values(existing).some((meta: any) => meta.index === index) : false;
 }
