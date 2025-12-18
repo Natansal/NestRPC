@@ -3,7 +3,7 @@ import { ROUTE_METADATA, ROUTER_METADATA } from "../reflect-keys.constant";
 import { Body, Controller, Post, UploadedFile, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import type { RouteConfig } from "../decorators";
 import { FileInterceptor, FilesInterceptor, NoFilesInterceptor } from "@nestjs/platform-express";
-import { FormDataParamPipe } from "../pipes";
+import { FormDataParamBodyInterceptor } from "../interceptors";
 import { ROUTE_ARGS_METADATA } from "@nestjs/common/constants";
 
 /**
@@ -135,23 +135,34 @@ export function applyForRouters(prefix: string, manifest: RpcRouterManifest) {
 
          switch (mode) {
             case "single":
-               UseInterceptors(FileInterceptor("file", options))(router.prototype, methodName, descriptor);
+               UseInterceptors(FileInterceptor("file", options), FormDataParamBodyInterceptor)(
+                  router.prototype,
+                  methodName,
+                  descriptor,
+               );
                if (!isIndexOccupied(router.prototype, methodName, 1)) UploadedFile()(router.prototype, methodName, 1);
                break;
             case "multiple":
-               UseInterceptors(FilesInterceptor("files", maxCount, options))(router.prototype, methodName, descriptor);
+               UseInterceptors(FilesInterceptor("files", maxCount, options), FormDataParamBodyInterceptor)(
+                  router.prototype,
+                  methodName,
+                  descriptor,
+               );
                if (!isIndexOccupied(router.prototype, methodName, 1)) UploadedFiles()(router.prototype, methodName, 1);
                break;
             default:
-               UseInterceptors(NoFilesInterceptor(options))(router.prototype, methodName, descriptor);
+               UseInterceptors(NoFilesInterceptor(options), FormDataParamBodyInterceptor)(
+                  router.prototype,
+                  methodName,
+                  descriptor,
+               );
                break;
          }
 
          // Use the descriptor captured during prototype traversal to apply the route decorator
          Post(paths)(router.prototype, methodName, descriptor);
          // Inject first param as the RPC body payload
-         if (!isIndexOccupied(router.prototype, methodName, 0))
-            Body(FormDataParamPipe)(router.prototype, methodName, 0);
+         if (!isIndexOccupied(router.prototype, methodName, 0)) Body()(router.prototype, methodName, 0);
       }
    }
 }
