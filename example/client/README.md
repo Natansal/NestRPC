@@ -1,69 +1,60 @@
-# React + TypeScript + Vite
+# NestRPC Client Example
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is a React + TypeScript + Vite example application demonstrating how to use the NestRPC client library.
 
-Currently, two official plugins are available:
+## Features Demonstrated
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **User CRUD Operations**: Create, read, update, and delete users using type-safe RPC calls
+- **Single File Upload**: Upload individual files with optional descriptions
+- **Multiple File Upload**: Upload multiple files at once with optional categorization
+- **File Management**: List, view, and delete uploaded files
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Install dependencies:
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Make sure the server is running (see `../server/README.md`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+3. Start the development server:
+```bash
+pnpm dev
 ```
+
+The app will be available at `http://localhost:5173`
+
+## Key Files
+
+- `src/App.tsx` - Main application component showcasing all features
+- `src/rpc-repo.ts` - RPC client configuration and router exports
+- `src/App.css` - Styling for the demo UI
+
+## Usage Example
+
+```typescript
+import { userRepo, filesRepo } from './rpc-repo';
+
+// Query users
+const { data: users } = await userRepo.queries.listUsers();
+
+// Create a user
+await userRepo.mutations.createUser({ name: 'John', email: 'john@example.com' });
+
+// Upload a single file
+await filesRepo.uploadFile(
+  { description: 'My document' },
+  { file: fileInput.files[0] }
+);
+
+// Upload multiple files
+await filesRepo.uploadFiles(
+  { category: 'documents' },
+  { files: Array.from(fileInput.files) }
+);
+```
+
+## Type Safety
+
+All RPC calls are fully type-safe. The client automatically infers types from the server's manifest, providing autocomplete and compile-time type checking.

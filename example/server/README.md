@@ -1,98 +1,113 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestRPC Server Example
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is a NestJS example application demonstrating how to use the NestRPC server library to create type-safe RPC endpoints.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features Demonstrated
 
-## Description
+- **Router Organization**: Separate routers for queries and mutations
+- **File Upload Support**: Single and multiple file upload handling
+- **Type-Safe Routes**: Decorator-based route definition with automatic type inference
+- **Manifest Configuration**: Centralized router manifest for type generation
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Getting Started
 
-## Project setup
-
+1. Install dependencies:
 ```bash
-$ pnpm install
+pnpm install
 ```
 
-## Compile and run the project
-
+2. Start the development server:
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm dev
 ```
 
-## Run tests
+The server will be available at `http://localhost:3000`
 
-```bash
-# unit tests
-$ pnpm run test
+## Project Structure
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+```
+src/
+├── main.ts                 # Application bootstrap
+├── app.module.ts          # Root module
+├── nest-rpc.config.ts     # Router manifest definition
+├── user/
+│   ├── user.module.ts
+│   ├── user.queries.router.ts    # Read operations
+│   ├── user.mutations.router.ts  # Write operations
+│   └── user.store.ts             # In-memory data store
+└── files/
+    ├── files.module.ts
+    └── files.router.ts           # File upload operations
 ```
 
-## Deployment
+## Key Concepts
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Router Definition
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Routers are classes decorated with `@Router()`:
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+```typescript
+@Router()
+export class UserQueriesRouter {
+  @Route()
+  getUser({ id }: { id: string }) {
+    return fetchUser(id);
+  }
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### File Uploads
 
-## Resources
+Use the `file` option in `@Route()` to handle file uploads:
 
-Check out a few resources that may come in handy when working with NestJS:
+```typescript
+// Single file
+@Route({ file: 'single' })
+uploadFile(params: { description?: string }, file?: Express.Multer.File) {
+  // Handle file
+}
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+// Multiple files
+@Route({ file: 'multiple' })
+uploadFiles(params: { category?: string }, files?: Express.Multer.File[]) {
+  // Handle files
+}
+```
 
-## Support
+### Manifest Configuration
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+The manifest defines the router structure for type generation:
 
-## Stay in touch
+```typescript
+export const manifest = defineManifest({
+  user: {
+    queries: UserQueriesRouter,
+    mutations: UserMutationsRouter,
+  },
+  files: FilesRouter,
+});
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## API Endpoints
 
-## License
+All routes are automatically exposed under `/nestjs-rpc/` prefix:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `POST /nestjs-rpc/user/queries/listUsers` - List all users
+- `POST /nestjs-rpc/user/queries/getUser` - Get user by ID
+- `POST /nestjs-rpc/user/mutations/createUser` - Create a user
+- `POST /nestjs-rpc/user/mutations/updateUser` - Update a user
+- `POST /nestjs-rpc/user/mutations/deleteUser` - Delete a user
+- `POST /nestjs-rpc/files/uploadFile` - Upload single file
+- `POST /nestjs-rpc/files/uploadFiles` - Upload multiple files
+- `POST /nestjs-rpc/files/listFiles` - List all files
+- `POST /nestjs-rpc/files/getFile` - Get file by ID
+- `POST /nestjs-rpc/files/deleteFile` - Delete a file
+- `POST /nestjs-rpc/files/clearAllFiles` - Clear all files
+
+## Type Safety
+
+The manifest type is exported and used by the client for full type safety:
+
+```typescript
+export type Manifest = typeof manifest;
+```
