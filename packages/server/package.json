@@ -1,6 +1,6 @@
 {
    "name": "@nestjs-rpc/server",
-   "version": "2.1.6",
+   "version": "2.1.7",
    "keywords": [
       "nestjs",
       "nest",
