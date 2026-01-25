@@ -125,13 +125,20 @@ export function applyForRouters(prefix: string, manifest: RpcRouterManifest) {
             methodName,
          ) as Partial<RouteConfig>;
 
-         const descriptor = descriptors.get(router)?.get(methodName)!;
+         const descriptor = descriptors.get(router)?.get(methodName);
+         if (!descriptor) {
+            throw new Error(
+               `Missing descriptor for method ${methodName} on router ${router.name}. ` +
+                  `This usually means the method was not found during prototype traversal.`,
+            );
+         }
 
          // --- file support ---
-         routeMetadata.file ??= "none";
-         const mode = typeof routeMetadata.file === "string" ? routeMetadata.file : routeMetadata.file.mode;
-         const options = typeof routeMetadata.file === "string" ? undefined : routeMetadata.file.options;
-         const maxCount = typeof routeMetadata.file === "string" ? undefined : routeMetadata.file.maxCount;
+         // Create a copy to avoid mutating the original metadata object
+         const fileConfig = routeMetadata.file ?? "none";
+         const mode = typeof fileConfig === "string" ? fileConfig : fileConfig.mode;
+         const options = typeof fileConfig === "string" ? undefined : fileConfig.options;
+         const maxCount = typeof fileConfig === "string" ? undefined : fileConfig.maxCount;
 
          switch (mode) {
             case "single":

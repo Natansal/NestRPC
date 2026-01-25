@@ -1,0 +1,55 @@
+{
+  "name": "@nestjs-rpc/query",
+  "version": "1.0.0",
+  "keywords": [
+    "nestjs",
+    "nest",
+    "rpc",
+    "remote-procedure-call",
+    "nestjs-rpc",
+    "react",
+    "react-query",
+    "tanstack",
+    "tanstack-query",
+    "query",
+    "hooks",
+    "query-hooks",
+    "mutation-hooks",
+    "typescript",
+    "type-safe",
+    "caching",
+    "cache-invalidation",
+    "data-fetching",
+    "api-client"
+  ],
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "echo 'Add test script here'",
+    "lint": "echo 'Add lint script here'"
+  },
+  "peerDependencies": {
+    "@nestjs-rpc/client": "^2.1.6",
+    "react": ">=18.0.0",
+    "@tanstack/react-query": "^5.0.0"
+  },
+  "devDependencies": {
+    "@nestjs-rpc/client": "workspace:*",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "tsup": "^8.5.0"
+  }
+}

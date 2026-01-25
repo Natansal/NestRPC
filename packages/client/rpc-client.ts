@@ -1,4 +1,4 @@
-import { RpcRouterManifest } from "@repo/shared";
+import { RpcRouterManifest, UNDEFINED_BODY } from "@repo/shared";
 import merge from "lodash.merge";
 import {
   InferNestRpcRouterApp,
@@ -22,8 +22,7 @@ export const PathSymbol = Symbol("path");
  * @typeParam T - 🧭 The manifest type used to infer the client surface.
  */
 export class RpcClient<T extends RpcRouterManifest> {
-  private config!: Required<Omit<RpcClientConfig, "baseUrl">> &
-    Pick<RpcClientConfig, "baseUrl">;
+  private config!: Required<RpcClientConfig>;
 
   private proxyCache = new Map<string, any>();
 
@@ -31,10 +30,10 @@ export class RpcClient<T extends RpcRouterManifest> {
    * 🏗️ Construct a new client.
    *
    * @param config - ⚙️ Client configuration.
+   * - `baseUrl` **required** - Base URL of your server (e.g. `"http://localhost:3000"`)
    * - `apiPrefix` default: "nestjs-rpc"
    * - `requestOptions` default: `{}`
    * - `axiosInstance` default: `axios`
-   * - `baseUrl` default: `undefined` (you should provide it)
    */
   constructor(config: RpcClientConfig) {
     this.$setConfig(config);
@@ -60,7 +59,7 @@ export class RpcClient<T extends RpcRouterManifest> {
     const trimSlashesRgx = /^\/+|\/+$/g;
 
     apiPrefix = apiPrefix.replace(trimSlashesRgx, "");
-    baseUrl = baseUrl?.replace(trimSlashesRgx, "");
+    baseUrl = baseUrl?.replace(trimSlashesRgx, "") ?? this.$config.baseUrl;
 
     this.config = { apiPrefix, requestOptions, axiosInstance, baseUrl };
   }
@@ -82,8 +81,8 @@ export class RpcClient<T extends RpcRouterManifest> {
   /**
    * 📦 Current normalized configuration.
    *
+   * - `baseUrl`: string (no leading/trailing slashes)
    * - `apiPrefix`: string (no leading/trailing slashes)
-   * - `baseUrl`: string | undefined (no leading/trailing slashes)
    * - `requestOptions`: AxiosRequestConfig
    * - `axiosInstance`: AxiosInstance
    */
@@ -169,9 +168,23 @@ export class RpcClient<T extends RpcRouterManifest> {
     );
   }
 
-  private buildBody(body: any, options?: RpcMethodOptions) {
+  private buildBody(body: unknown, options?: RpcMethodOptions) {
     const formData = new FormData();
-    const stringifiedBody = JSON.stringify(body);
+
+    // Validate body is serializable
+    let stringifiedBody: string;
+    if (body === undefined) {
+      stringifiedBody = UNDEFINED_BODY;
+    } else {
+      try {
+        stringifiedBody = JSON.stringify(body);
+      } catch (error) {
+        throw new Error(
+          `Failed to serialize RPC body: ${error instanceof Error ? error.message : "Unknown error"}. ` +
+            `Body must be JSON-serializable.`,
+        );
+      }
+    }
 
     formData.append("param", stringifiedBody);
 

@@ -26,6 +26,12 @@ importers:
       '@nestjs-rpc/client':
         specifier: workspace:*
         version: link:../../packages/client
+      '@nestjs-rpc/query':
+        specifier: workspace:*
+        version: link:../../packages/query
+      '@tanstack/react-query':
+        specifier: ^5.0.0
+        version: 5.90.20(react@19.1.1)
       react:
         specifier: ^19.1.1
         version: 19.1.1
@@ -218,6 +224,28 @@ importers:
       typescript-eslint:
         specifier: ^8.39.0
         version: 8.39.0(eslint@9.33.0)(typescript@5.9.2)
+
+  packages/query:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.0.0
+        version: 5.90.20(react@19.1.1)
+      react:
+        specifier: '>=18.0.0'
+        version: 19.1.1
+    devDependencies:
+      '@nestjs-rpc/client':
+        specifier: workspace:*
+        version: link:../client
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.0(postcss@8.5.6)(typescript@5.9.2)
 
   packages/server:
     dependencies:
@@ -1183,6 +1211,14 @@ packages:
 
   '@sinonjs/fake-timers@13.0.5':
     resolution: {integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==}
+
+  '@tanstack/query-core@5.90.20':
+    resolution: {integrity: sha512-OMD2HLpNouXEfZJWcKeVKUgQ5n+n3A2JFmBaScpNDUqSrQSjiveC7dKMe53uJUg1nDG16ttFPz2xfilz6i2uVg==}
+
+  '@tanstack/react-query@5.90.20':
+    resolution: {integrity: sha512-vXBxa+qeyveVO7OA0jX1z+DeyCA4JKnThKv411jd5SORpBKgkcVnYKCiBgECvADvniBX7tobwBmg01qq9JmMJw==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tokenizer/inflate@0.2.7':
     resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
@@ -5161,6 +5197,13 @@ snapshots:
   '@sinonjs/fake-timers@13.0.5':
     dependencies:
       '@sinonjs/commons': 3.0.1
+
+  '@tanstack/query-core@5.90.20': {}
+
+  '@tanstack/react-query@5.90.20(react@19.1.1)':
+    dependencies:
+      '@tanstack/query-core': 5.90.20
+      react: 19.1.1
 
   '@tokenizer/inflate@0.2.7':
     dependencies:

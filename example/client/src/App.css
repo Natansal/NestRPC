@@ -222,3 +222,59 @@
   font-size: 0.8rem;
   color: #8b8b8b;
 }
+
+/* Navigation */
+.navigation {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 1.5rem 0;
+  padding: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-button {
+  flex: 1;
+  max-width: 200px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.3);
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-button:hover {
+  background: rgba(100,108,255,0.2);
+  border-color: rgba(100,108,255,0.4);
+}
+
+.nav-button.active {
+  background: linear-gradient(135deg, #646cff, #22d3ee);
+  border-color: transparent;
+  color: white;
+}
+
+/* Page Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(100,108,255,0.1);
+  border: 1px solid rgba(100,108,255,0.2);
+  border-radius: 12px;
+}
+
+.page-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+.page-header .muted {
+  font-size: 1rem;
+}
