@@ -17,7 +17,7 @@ export type InstanceMethods<T> = {
     : never]: T[K] extends (...args: infer A) => infer R
     ? RpcMethod<A[0], R> & { [PathSymbol]: string[] }
     : never;
-};
+} & { [PathSymbol]: string[] };
 
 /**
  * 🧠 Infer the client application type from a router configuration map.
