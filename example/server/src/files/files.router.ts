@@ -1,5 +1,4 @@
-import { Route, Router } from 'server';
-import type { Express } from 'express';
+import { Route, Router } from "server";
 
 /**
  * 📁 FilesRouter
@@ -30,13 +29,13 @@ export class FilesRouter {
    * @param file - 📄 The uploaded file (Express.Multer.File)
    * @returns ✅ File metadata including ID, name, size, and type.
    */
-  @Route({ file: 'single' })
+  @Route({ file: "single" })
   uploadFile(
     { description }: { description?: string },
     file?: Express.Multer.File,
   ) {
     if (!file) {
-      throw new Error('No file provided');
+      throw new Error("No file provided");
     }
 
     const fileId = String(this.fileIdCounter++);
@@ -45,7 +44,7 @@ export class FilesRouter {
       name: file.originalname,
       size: file.size,
       type: file.mimetype,
-      description: description || 'No description',
+      description: description || "No description",
       uploadedAt: new Date(),
     };
 
@@ -66,13 +65,13 @@ export class FilesRouter {
    * @param files - 📚 Array of uploaded files (Express.Multer.File[])
    * @returns ✅ Summary of all uploaded files.
    */
-  @Route({ file: 'multiple' })
+  @Route({ file: "multiple" })
   uploadFiles(
     { category }: { category?: string },
     files?: Express.Multer.File[],
   ) {
     if (!files || files.length === 0) {
-      throw new Error('No files provided');
+      throw new Error("No files provided");
     }
 
     const uploaded = files.map((file) => {
@@ -82,7 +81,7 @@ export class FilesRouter {
         name: file.originalname,
         size: file.size,
         type: file.mimetype,
-        category: category || 'uncategorized',
+        category: category || "uncategorized",
         uploadedAt: new Date(),
       };
       this.uploadedFiles.set(fileId, fileInfo);
@@ -93,7 +92,7 @@ export class FilesRouter {
       success: true,
       files: uploaded,
       count: uploaded.length,
-      category: category || 'uncategorized',
+      category: category || "uncategorized",
       message: `Successfully uploaded ${uploaded.length} file(s)`,
     };
   }
