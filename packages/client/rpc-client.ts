@@ -25,6 +25,8 @@ export class RpcClient<T extends RpcRouterManifest> {
   private config!: Required<Omit<RpcClientConfig, "baseUrl">> &
     Pick<RpcClientConfig, "baseUrl">;
 
+  private proxyCache = new Map<string, any>();
+
   /**
    * 🏗️ Construct a new client.
    *
@@ -106,10 +108,16 @@ export class RpcClient<T extends RpcRouterManifest> {
    *
    * @returns A nested proxy matching the structure of your manifest.
    */
-  routers() {
+  routers(): InferNestRpcRouterApp<T> {
     const that = this;
     function buildProxy(path: string[] = []) {
-      return new Proxy(
+      const cacheKey = path.join(".");
+
+      if (that.proxyCache.has(cacheKey)) {
+        return that.proxyCache.get(cacheKey);
+      }
+
+      const proxy = new Proxy(
         (() => {}) as any as ((body: any) => Promise<any>) &
           Record<string, any>,
         {
@@ -137,9 +145,12 @@ export class RpcClient<T extends RpcRouterManifest> {
           },
         },
       );
+
+      that.proxyCache.set(cacheKey, proxy);
+      return proxy;
     }
 
-    return buildProxy() as any as InferNestRpcRouterApp<T>;
+    return buildProxy() as any;
   }
 
   private async handleRequest(
