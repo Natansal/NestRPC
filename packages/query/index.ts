@@ -113,6 +113,51 @@ type RpcArgsWithDefinedOptions<TBody, TOpts> =
 // ============================================================================
 
 /**
+ * Extends a React Query result type with the computed query key.
+ * Useful for consumers who need to manipulate cache entries via queryClient.
+ */
+export type WithQueryKey<T> = T & {
+  /**
+   * The complete query key for the query. As transported to the query client.
+   */
+  queryKey: QueryKey;
+  /**
+   * The structured components that make up the query key, before flattening.
+   *
+   * The ordering is significant — React Query matches query keys as prefixes,
+   * so earlier segments act as broader filters and later segments narrow the match.
+   * The structure is:
+   *
+   * 1. `path` — The RPC method path segments (e.g., `["user", "getById"]`).
+   *    Matches all queries for a given RPC endpoint.
+   * 2. `body` — The request body wrapped in a single-element array.
+   *    Narrows to queries with a specific request payload.
+   * 3. `rpcOptions` — The RPC options wrapped in a single-element array.
+   *    Narrows to queries with specific transport options.
+   * 4. `additionalQueryKey` — Extra key parts for custom differentiation.
+   *
+   * @example
+   * ```ts
+   * const { queryKeyComponents } = useRpcQuery(rpc.user.getById, { id: '123' });
+   *
+   * // Invalidate ALL queries for the user.getById endpoint (any body/options):
+   * const [path] = queryKeyComponents;
+   * queryClient.invalidateQueries({ queryKey: path });
+   *
+   * // Invalidate only queries for this specific body:
+   * const [path, body] = queryKeyComponents;
+   * queryClient.invalidateQueries({ queryKey: [...path, ...body] });
+   * ```
+   */
+  queryKeyComponents: [
+    path: string[],
+    body: [unknown],
+    rpcOptions: [RpcMethodOptions],
+    additionalQueryKey: unknown[],
+  ];
+};
+
+/**
  * Metadata attached to each RPC query for internal use.
  * Contains the RPC path, body, options, and additional query key parts.
  *
@@ -146,7 +191,7 @@ export interface RpcQueryHookDefined<TBody, TRet, TFactoryData = TRet> {
         DefinedInitialDataOptions<TRet, AxiosError, TData, QueryKey>
       >
     >
-  ): DefinedUseQueryResult<NoInfer<TData>, AxiosError>;
+  ): WithQueryKey<DefinedUseQueryResult<NoInfer<TData>, AxiosError>>;
 
   <TData = TFactoryData>(
     ...args: RpcArgsWithDefinedOptions<
@@ -155,14 +200,14 @@ export interface RpcQueryHookDefined<TBody, TRet, TFactoryData = TRet> {
         initialData: undefined;
       }
     >
-  ): UseQueryResult<NoInfer<TData>, AxiosError>;
+  ): WithQueryKey<UseQueryResult<NoInfer<TData>, AxiosError>>;
 
   <TData = TFactoryData>(
     ...args: RpcArgs<
       TBody,
       RpcQueryOptions<UseQueryOptions<TRet, AxiosError, TData, QueryKey>>
     >
-  ): DefinedUseQueryResult<NoInfer<TData>, AxiosError>;
+  ): WithQueryKey<DefinedUseQueryResult<NoInfer<TData>, AxiosError>>;
 }
 
 /**
@@ -180,14 +225,14 @@ export interface RpcQueryHook<TBody, TRet, TFactoryData = TRet> {
         DefinedInitialDataOptions<TRet, AxiosError, TData, QueryKey>
       >
     >
-  ): DefinedUseQueryResult<NoInfer<TData>, AxiosError>;
+  ): WithQueryKey<DefinedUseQueryResult<NoInfer<TData>, AxiosError>>;
 
   <TData = TFactoryData>(
     ...args: RpcArgs<
       TBody,
       RpcQueryOptions<UseQueryOptions<TRet, AxiosError, TData, QueryKey>>
     >
-  ): UseQueryResult<NoInfer<TData>, AxiosError>;
+  ): WithQueryKey<UseQueryResult<NoInfer<TData>, AxiosError>>;
 }
 
 /**
@@ -412,14 +457,15 @@ export function createRpcQuery<TBody, TRet, TData>(
     // This ensures proper cache differentiation based on all parameters.
     // Queries with different bodies, options, or additional keys will have
     // separate cache entries.
-    const queryKey: QueryKey = [
-      ...path,
-      body,
-      rpcOptions,
-      ...additionalQueryKeyArr,
+    const queryKeyComponents = [
+      path,
+      [body],
+      [rpcOptions],
+      additionalQueryKeyArr,
     ];
+    const queryKey = queryKeyComponents.flat();
 
-    return useQuery(
+    const queryResult = useQuery(
       {
         ...restDefaultOptions,
         ...queryOptions,
@@ -436,6 +482,17 @@ export function createRpcQuery<TBody, TRet, TData>(
       },
       queryClient,
     );
+
+    return useMemo(() => {
+      return new Proxy(queryResult, {
+        get(target, prop, receiver) {
+          if (prop === "queryKey") return queryKey;
+          if (prop === "queryKeyComponents") return queryKeyComponents;
+          // Forward all other property accesses to the original TanStack Query proxy
+          return Reflect.get(target, prop, receiver);
+        },
+      });
+    }, [queryResult]);
   };
 
   return useRpcQueryInstance;
@@ -488,20 +545,18 @@ export function useRpcQuery<TBody, TRet, TData = TRet>(
       DefinedInitialDataOptions<TRet, AxiosError, TData, QueryKey>
     >
   >
-): DefinedUseQueryResult<NoInfer<TData>, AxiosError>;
+): WithQueryKey<DefinedUseQueryResult<NoInfer<TData>, AxiosError>>;
 export function useRpcQuery<TBody, TRet, TData = TRet>(
   method: RpcMethod<TBody, TRet> & { [PathSymbol]: string[] },
   ...args: RpcArgs<
     TBody,
     RpcQueryOptions<UseQueryOptions<TRet, AxiosError, TData, QueryKey>>
   >
-): UseQueryResult<NoInfer<TData>, AxiosError>;
+): WithQueryKey<UseQueryResult<NoInfer<TData>, AxiosError>>;
 export function useRpcQuery<TBody, TRet, TData = TRet>(
   method: RpcMethod<TBody, TRet> & { [PathSymbol]: string[] },
   ...args: any[]
-): UseQueryResult<TData, AxiosError> {
-  // Memoize the hook factory to avoid recreating it on every render
-  // This ensures the hook reference is stable across re-renders
+): WithQueryKey<UseQueryResult<TData, AxiosError>> {
   const useTheQuery = useMemo(() => createRpcQuery(method), [method]);
   const [body, options, queryClient] = args;
   return useTheQuery(body, options, queryClient) as any;
